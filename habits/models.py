@@ -67,9 +67,7 @@ class Goal(models.Model):
     def next_instance_after_date(self, last):
         rr = rrule.rrulestr(self.rrule)
         dt = datetime.datetime(last.year, last.month, last.day)
-        after = rr.after(dt).date()
-
-        return after
+        return rr.after(dt).date()
 
     def next_date(self):
         last = self.last_completion()

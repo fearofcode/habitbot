@@ -32,12 +32,22 @@ class Goal(models.Model):
         self.description = goal_text[:index].strip()
 
         recurring_event = RecurringEvent()
-        result = recurring_event.parse(self.creation_text)
+
+        result = None
+
+        try:
+            result = recurring_event.parse(self.creation_text)
+        except ValueError:
+            raise InvalidInput("Not a recurring rule or not valid input")
 
         if type(result) != type('str'):
             raise InvalidInput("Not a recurring rule or not valid input")
 
         params = recurring_event.get_params()
+
+        if params['freq'] in ['hourly', 'minutely', 'secondly']:
+            raise InvalidInput("Not a recurring rule or not valid input")
+
         self.dtstart = datetime.datetime.strptime(params['dtstart'], "%Y%m%d").date() if params.has_key('dtstart')\
             else datetime.date.today()
 
@@ -65,10 +75,6 @@ class Goal(models.Model):
             dt = datetime.datetime(last_completion.created_at.year,
                                     last_completion.created_at.month,
                                     last_completion.created_at.day)
-
-            print "rrule = ", self.rrule
-            print "dt = ", dt
-            print "rr.after(dt)", rr.after(dt)
 
             return rr.after(dt).date()
 

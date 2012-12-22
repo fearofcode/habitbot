@@ -48,15 +48,15 @@ class GoalTest(TestCase):
         self.assertEqual(self.byday_goal.dtstart, datetime.date(2013, 1, 7))
 
     def test_get_next_datetime(self):
-
         self.assertEqual(self.simple_goal.next_datetime(), self.today)
         self.assertEqual(self.byday_goal.next_datetime(), datetime.date(2013, 1, 7))
 
-        self.simple_goal.completion_set.create()
-
+        self.simple_goal.completion_set.create(created_at=self.today)
         tomorrow = self.today + datetime.timedelta(days=1)
-
         self.assertEqual(self.simple_goal.next_datetime(), tomorrow)
+
+        self.byday_goal.completion_set.create(created_at=datetime.date(2013, 1, 7))
+        self.assertEqual(self.byday_goal.next_datetime(), datetime.date(2013, 1, 9))
 
     def test_complain_invalid_input(self):
         """

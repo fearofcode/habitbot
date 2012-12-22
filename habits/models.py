@@ -54,6 +54,7 @@ class Goal(models.Model):
 
         try:
             last_completion = self.completion_set.order_by('created_at')[0]
+            print "last_completion = ", last_completion
         except IndexError:
             return self.dtstart
 
@@ -63,8 +64,12 @@ class Goal(models.Model):
             rr = rrule.rrulestr(self.rrule)
             dt = datetime.datetime(last_completion.created_at.year,
                                     last_completion.created_at.month,
-                                    last_completion.created_at.day, 0, 1)
-            
+                                    last_completion.created_at.day)
+
+            print "rrule = ", self.rrule
+            print "dt = ", dt
+            print "rr.after(dt)", rr.after(dt)
+
             return rr.after(dt).date()
 
 
@@ -73,7 +78,7 @@ class Goal(models.Model):
 
 class Completion(models.Model):
     goal = models.ForeignKey(Goal)
-    created_at = models.DateField(auto_now_add=True)
+    created_at = models.DateField()
 
     def __unicode__(self):
         return str(self.created_at)

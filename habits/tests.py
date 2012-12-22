@@ -40,12 +40,13 @@ class GoalTest(TestCase):
         self.assertEqual(goal.frequency, "weekly")
         self.assertEqual(goal.byday, 'MO,WE,FR')
         self.assertEqual(goal.interval, 1)
+
     def test_complain_invalid_input(self):
         """
         Tests that parsing complains on invalid input.
         """
 
-        bad_input = "Herp a derp all day"
+        bad_input = "Herp a derp on Monday"
 
         goal = Goal()
 

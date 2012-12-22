@@ -64,7 +64,6 @@ class Goal(models.Model):
 
         try:
             last_completion = self.completion_set.order_by('created_at')[0]
-            print "last_completion = ", last_completion
         except IndexError:
             return self.dtstart
 

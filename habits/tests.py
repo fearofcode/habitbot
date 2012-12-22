@@ -68,3 +68,7 @@ class GoalTest(TestCase):
         goal = Goal()
 
         self.assertRaises(InvalidInput, goal.parse, bad_input)
+
+        self.assertRaises(InvalidInput, goal.parse, "Do something every hour")
+        self.assertRaises(InvalidInput, goal.parse, "Do something every minute")
+        self.assertRaises(InvalidInput, goal.parse, "Do something every second")

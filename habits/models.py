@@ -20,6 +20,7 @@ class Goal(models.Model):
     rrule = models.CharField(max_length=200)
     dtstart = models.DateField()
     frequency = models.CharField(max_length=50)
+    byday = models.CharField(max_length=50, null=True, blank=true)
     interval = models.IntegerField()
 
     def parse(self, goal_text):
@@ -44,6 +45,7 @@ class Goal(models.Model):
 
         self.dtstart = params['dtstart'] if params.has_key('dtstart') else datetime.date.today()
         self.frequency = params['freq']
+        self.byday = params['byday'] if params.has_key('byday') else None
         self.interval = params['interval']
 
     def __unicode__(self):

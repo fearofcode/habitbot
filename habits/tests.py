@@ -25,6 +25,21 @@ class GoalTest(TestCase):
         self.assertEqual(goal.frequency, "daily")
         self.assertEqual(goal.interval, 1)
 
+    def test_parse_goal_with_start_date_and_by_date(self):
+        """
+        Tests that we can parse a goal from text input with different kinds of input.
+        """
+        goal_text = "Go to the gym every mon wed and fri starting jan 7 2013"
+
+        goal = Goal()
+        goal.parse(goal_text)
+        self.assertEqual(goal.creation_text, "Go to the gym every mon wed and fri starting jan 7 2013")
+        self.assertEqual(goal.description, "Go to the gym")
+        self.assertEqual(goal.rrule, 'DTSTART:20130107\nRRULE:BYDAY=MO,WE,FR;INTERVAL=1;FREQ=WEEKLY')
+        self.assertEqual(goal.dtstart, datetime.date(2013, 1, 7))
+        self.assertEqual(goal.frequency, "weekly")
+        self.assertEqual(goal.byday, 'MO,WE,FR')
+        self.assertEqual(goal.interval, 1)
     def test_complain_invalid_input(self):
         """
         Tests that parsing complains on invalid input.

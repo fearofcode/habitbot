@@ -59,29 +59,33 @@ class Goal(models.Model):
 
         # TODO complain if shorter than daily, catch ValueError
 
-    def next_datetime(self):
-        last_completion = None
+    def last_completion(self):
+        last = None
 
         try:
-            last_completion = self.completion_set.order_by('created_at')[0]
+            return self.instance_set.order_by('created_at')[0]
         except IndexError:
-            return self.dtstart
+            return None
 
-        if not last_completion:
-            return self.dtstart
+    def next_datetime(self):
+        last = self.last_completion()
+
+        if not last:
+            return Instance(goal=self, created_at=self.dtstart)
         else:
             rr = rrule.rrulestr(self.rrule)
-            dt = datetime.datetime(last_completion.created_at.year,
-                                    last_completion.created_at.month,
-                                    last_completion.created_at.day)
+            dt = datetime.datetime(last.created_at.year,
+                                    last.created_at.month,
+                                    last.created_at.day)
 
-            return rr.after(dt).date()
+            after = rr.after(dt).date()
+            return Instance(goal=self, created_at=after)
 
 
     def __unicode__(self):
         return self.creation_text
 
-class Completion(models.Model):
+class Instance(models.Model):
     goal = models.ForeignKey(Goal)
     created_at = models.DateField()
 

@@ -48,17 +48,21 @@ class GoalTest(TestCase):
         self.assertEqual(self.byday_goal.dtstart, datetime.date(2013, 1, 7))
 
     def test_get_next_datetime(self):
-        self.assertEqual(self.simple_goal.next_datetime().created_at, self.today)
-        self.assertEqual(self.byday_goal.next_datetime().created_at, datetime.date(2013, 1, 7))
-
         tomorrow = self.today + datetime.timedelta(days=1)
 
-        self.simple_goal.instance_set.create(created_at=self.today)
+        self.assertEqual(self.simple_goal.next_date(), self.today)
 
-        self.assertEqual(self.simple_goal.next_datetime().created_at, tomorrow)
+        self.assertEqual(self.byday_goal.next_date(), datetime.date(2013, 1, 7))
+
+        self.simple_goal.instance_set.create(created_at=self.today)
+        instance = self.simple_goal.instance_set.all()[0]
+
+        self.assertEqual(instance.compute_due_at(), tomorrow)
+
+        self.assertEqual(self.simple_goal.next_date(), tomorrow)
 
         self.byday_goal.instance_set.create(created_at=datetime.date(2013, 1, 7))
-        self.assertEqual(self.byday_goal.next_datetime().created_at, datetime.date(2013, 1, 9))
+        self.assertEqual(self.byday_goal.next_date(), datetime.date(2013, 1, 9))
 
     def test_weekly_goals(self):
         goal_text = "Do a timed mile run every other week"
@@ -71,10 +75,12 @@ class GoalTest(TestCase):
         self.assertEqual(goal.description, "Do a timed mile run")
         self.assertEqual(goal.rrule,
             'DTSTART:' + self.today.strftime("%Y%m%d") + '\nRRULE:FREQ=WEEKLY;INTERVAL=2')
-        self.assertEqual(self.simple_goal.dtstart, datetime.date.today())
+        self.assertEqual(goal.dtstart, datetime.date.today())
 
-        #self.assertEqual(self.simple_goal.next_datetime().created_at, self.today)
-        #self.assertEqual(self.simple_goal.next_datetime().created_at, self.today)
+        goal.instance_set.create(created_at=self.today)
+        instance = goal.instance_set.all()[0]
+
+        self.assertEqual(instance.compute_due_at(), self.today + datetime.timedelta(weeks=2))
 
     def test_complain_invalid_input(self):
         """

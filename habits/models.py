@@ -56,9 +56,6 @@ class Goal(models.Model):
         if not self.rrule.startswith("DTSTART:"):
             self.rrule = "DTSTART:" + self.dtstart.strftime("%Y%m%d") + "\n" + self.rrule
 
-
-        # TODO complain if shorter than daily, catch ValueError
-
     def last_completion(self):
         last = None
 
@@ -67,28 +64,35 @@ class Goal(models.Model):
         except IndexError:
             return None
 
-    def next_datetime(self):
+    def next_instance_after_date(self, last):
+        rr = rrule.rrulestr(self.rrule)
+        dt = datetime.datetime(last.year, last.month, last.day)
+        after = rr.after(dt).date()
+
+        return after
+
+    def next_date(self):
         last = self.last_completion()
 
         if not last:
-            return Instance(goal=self, created_at=self.dtstart)
+            return self.dtstart
         else:
-            rr = rrule.rrulestr(self.rrule)
-            dt = datetime.datetime(last.created_at.year,
-                                    last.created_at.month,
-                                    last.created_at.day)
-
-            after = rr.after(dt).date()
-            return Instance(goal=self, created_at=after)
+            return self.next_instance_after_date(last.created_at)
 
 
     def __unicode__(self):
-        return self.creation_text
+        return ", ".join(["creation_text=" + self.creation_text, "created_at=" + str(self.created_at),
+                "description=" + self.description, "rrule=" + self.rrule, "dtstart=" + str(self.dtstart)])
 
 class Instance(models.Model):
     goal = models.ForeignKey(Goal)
     created_at = models.DateField()
+    done = models.BooleanField(default=False)
+    due_at = models.DateField(null=True, blank=True)
+
+    def compute_due_at(self):
+        return self.goal.next_instance_after_date(self.created_at)
 
     def __unicode__(self):
-        return str(self.created_at)
+        return ", ".join(["goal=<" + str(self.goal) + ">", "created_at=" + str(self.created_at)])
 

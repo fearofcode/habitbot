@@ -6,11 +6,15 @@ Replace this with more appropriate tests for your application.
 """
 
 from django.test import TestCase
+from habits.models import Goal
 
+class GoalTest(TestCase):
+    def test_parsing(self):
+        """
+        Tests that we can parse a goal from text input.
+        """
+        goal_text = "Go for a walk every day"
 
-class SimpleTest(TestCase):
-    def test_basic_addition(self):
-        """
-        Tests that 1 + 1 always equals 2.
-        """
-        self.assertEqual(1 + 1, 2)
+        goal = Goal()
+        goal.parse(goal_text)
+        self.assertEqual(goal.description, "Go for a walk")

@@ -1,6 +1,7 @@
 from django.db import models
 
 import datetime
+from dateutil import rrule
 from recurrent import RecurringEvent
 
 class InvalidInput(Exception):
@@ -19,9 +20,6 @@ class Goal(models.Model):
     description = models.CharField(max_length=50)
     rrule = models.CharField(max_length=200)
     dtstart = models.DateField()
-    frequency = models.CharField(max_length=50)
-    byday = models.CharField(max_length=50, null=True, blank=True)
-    interval = models.IntegerField()
 
     def parse(self, goal_text):
         self.creation_text = goal_text
@@ -39,16 +37,44 @@ class Goal(models.Model):
         if type(result) != type('str'):
             raise InvalidInput("Not a recurring rule or not valid input")
 
+        params = recurring_event.get_params()
+        self.dtstart = datetime.datetime.strptime(params['dtstart'], "%Y%m%d").date() if params.has_key('dtstart')\
+            else datetime.date.today()
+
         self.rrule = recurring_event.get_RFC_rrule()
 
-        params = recurring_event.get_params()
+        if not self.rrule.startswith("DTSTART:"):
+            self.rrule = "DTSTART:" + self.dtstart.strftime("%Y%m%d") + "\n" + self.rrule
 
-        self.dtstart = datetime.datetime.strptime(params['dtstart'], "%Y%m%d").date() if params.has_key('dtstart') \
-            else datetime.date.today()
-        self.frequency = params['freq']
-        self.byday = params['byday'] if params.has_key('byday') else None
-        self.interval = params['interval']
+
+        # TODO complain if shorter than daily, catch ValueError
+
+    def next_datetime(self):
+        last_completion = None
+
+        try:
+            last_completion = self.completion_set.order_by('created_at')[0]
+        except IndexError:
+            return self.dtstart
+
+        if not last_completion:
+            return self.dtstart
+        else:
+            rr = rrule.rrulestr(self.rrule)
+            dt = datetime.datetime(last_completion.created_at.year,
+                                    last_completion.created_at.month,
+                                    last_completion.created_at.day, 0, 1)
+            
+            return rr.after(dt).date()
+
 
     def __unicode__(self):
         return self.creation_text
+
+class Completion(models.Model):
+    goal = models.ForeignKey(Goal)
+    created_at = models.DateField(auto_now_add=True)
+
+    def __unicode__(self):
+        return str(self.created_at)
 

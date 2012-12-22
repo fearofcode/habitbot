@@ -6,7 +6,7 @@ Replace this with more appropriate tests for your application.
 """
 
 from django.test import TestCase
-from habits.models import Goal, InvalidInput
+from habits.models import Goal, InvalidInput, Completion
 import datetime
 
 class GoalTest(TestCase):
@@ -15,11 +15,15 @@ class GoalTest(TestCase):
 
         self.simple_goal = Goal()
         self.simple_goal.parse(simple_goal_text)
+        self.simple_goal.save()
 
         byday_text = "Go to the gym every mon wed and fri starting jan 7 2013"
 
         self.byday_goal = Goal()
         self.byday_goal.parse(byday_text)
+        self.byday_goal.save()
+
+        self.today = datetime.date.today()
 
     def test_parse_goal(self):
         """
@@ -28,10 +32,10 @@ class GoalTest(TestCase):
 
         self.assertEqual(self.simple_goal.creation_text, "Go for a walk every day")
         self.assertEqual(self.simple_goal.description, "Go for a walk")
-        self.assertEqual(self.simple_goal.rrule, 'RRULE:FREQ=DAILY;INTERVAL=1')
+        self.assertEqual(self.simple_goal.rrule,
+            'DTSTART:' + self.today.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1')
         self.assertEqual(self.simple_goal.dtstart, datetime.date.today())
-        self.assertEqual(self.simple_goal.frequency, "daily")
-        self.assertEqual(self.simple_goal.interval, 1)
+
 
     def test_parse_goal_with_start_date_and_by_date(self):
         """
@@ -42,9 +46,17 @@ class GoalTest(TestCase):
         self.assertEqual(self.byday_goal.description, "Go to the gym")
         self.assertEqual(self.byday_goal.rrule, 'DTSTART:20130107\nRRULE:BYDAY=MO,WE,FR;INTERVAL=1;FREQ=WEEKLY')
         self.assertEqual(self.byday_goal.dtstart, datetime.date(2013, 1, 7))
-        self.assertEqual(self.byday_goal.frequency, "weekly")
-        self.assertEqual(self.byday_goal.byday, 'MO,WE,FR')
-        self.assertEqual(self.byday_goal.interval, 1)
+
+    def test_get_next_datetime(self):
+
+        self.assertEqual(self.simple_goal.next_datetime(), self.today)
+        self.assertEqual(self.byday_goal.next_datetime(), datetime.date(2013, 1, 7))
+
+        self.simple_goal.completion_set.create()
+
+        tomorrow = self.today + datetime.timedelta(days=1)
+
+        self.assertEqual(self.simple_goal.next_datetime(), tomorrow)
 
     def test_complain_invalid_input(self):
         """

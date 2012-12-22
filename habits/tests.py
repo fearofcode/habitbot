@@ -63,11 +63,9 @@ class GoalTest(TestCase):
         Tests that parsing complains on invalid input.
         """
 
-        bad_input = "Herp a derp on Monday"
-
         goal = Goal()
 
-        self.assertRaises(InvalidInput, goal.parse, bad_input)
+        self.assertRaises(InvalidInput, goal.parse, "Herp a derp on Monday")
 
         self.assertRaises(InvalidInput, goal.parse, "Do something every hour")
         self.assertRaises(InvalidInput, goal.parse, "Do something every minute")

@@ -1,7 +1,82 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Habitbot: Change your life one day at a time</title>
+    <meta name="description" content="">
+    <meta name="author" content="">
 
-{% block title %}My amazing blog{% endblock %}
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
 
-{% block content %}
-    <p>Welcome to Habitbot.</p>
-{% endblock %}
+    <style type="text/css">
+        body {
+            padding-top: 60px;
+            padding-bottom: 40px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </a>
+            <a class="brand" href="/">Habitbot</a>
+            <div class="nav-collapse collapse">
+                <form class="navbar-form pull-right">
+                    <input class="span2" type="text" placeholder="Email">
+                    <input class="span2" type="password" placeholder="Password">
+                    <button type="submit" class="btn">Sign in</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="hero-unit">
+        <h1>Change your life, one day at a time</h1>
+        <p>Habitbot is a simple, free application that lets you track goals you want to do on a regular, recurring basis, like exercising or working on a side project.</p>
+        <p><a class="btn btn-primary btn-large">Sign up</a></p>
+    </div>
+
+    <div class="row">
+        <div class="span4">
+            <h2>Don't break the chain</h2>
+            <p>Habitbot motivates you to keep good habits by tracking streaks of positive progress. This is inspired by a motivational technique <a href="http://lifehacker.com/281626/jerry-seinfelds-productivity-secret">Jerry Seinfeld allegedly uses</a> to keep producing good work.</p>
+        </div>
+        <div class="span4">
+            <h2>Take little steps</h2>
+            <p>You can set goals you want to accomplish every day, or on specific days of the week, so that getting started easy and so is every additional step. Before you know it, you'll have a better life.</p>
+        </div>
+        <div class="span4">
+            <h2>Natural language input</h2>
+            <p>Habibot lets you type in goals in plain english, like:
+
+                <ul>
+                    <li><em>go for a walk every day</em></li>
+                    <li><em>go to the gym on monday wednesday and friday starting jan 7 2013</em></li>
+                </ul>
+
+            And it will just work.</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <footer>
+        <p>&copy; Warren Henning (<a href="http://twitter.com/fearofcode">@fearofcode</a>) 2012</p>
+    </footer>
+
+</div>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+
+</body>
+</html>

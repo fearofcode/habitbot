@@ -22,19 +22,45 @@
     <div class="container">
         <form method="POST" action="/habits/new_goal/" class="form-inline" id="new-goal">
             {% csrf_token %}
+            {% if error_message %}
+                <div class="control-group error">
+                    <div class="controls">
+                        <span class="help-inline">{{ error_message }}</span>
+                    </div>
+                </div>
+            {% endif %}
             <fieldset>
                 <legend>Make a new goal</legend>
-                <input type="text" id="goal_text" placeholder="<action> every <interval>">
+                <input type="text" name="goal_text" placeholder="<action> every <interval>">
                 <button type="submit" class="btn">Add</button>
             </fieldset>
         </form>
 
-        <h2>Current goals</h2>
+        {% if instances %}
+            <h2>For today</h2>
+            <form method="POST" action="habits/completed/">
+                {% csrf_token %}
+                {% for goal in goals %}
+                    <label class="checkbox">
+                        <input type="checkbox" name="goal" id="goal{{ forloop.counter }}" value="{{ goal.id }}">
+                        {{ goal.description }}
+                    </label>
+                {% endfor %}
+
+                <button type="submit" class="btn">Done</button>
+            </form>
+        {% endif %}
+
+        <h3>Current goals</h3>
 
         {% if goals %}
             <ul>
                 {% for goal in goals %}
-                    <li>{{ goal.creation_text }}, started {{ goal.created_at }}</li>
+                    <li>{{ goal.creation_text }}, started {{ goal.created_at }}
+                        <form method="POST" action="/habits/delete_goal/{{ goal.id }}/" class="form-inline">
+                            {% csrf_token %}
+                            <button class="btn btn-mini" type="submit">Delete</button>
+                        </form></li>
                 {% endfor %}
             </ul>
 

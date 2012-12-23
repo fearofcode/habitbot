@@ -77,6 +77,10 @@ class Goal(models.Model):
         else:
             return self.next_instance_after_date(last.created_at)
 
+    @classmethod
+    def get_current_instances(self, goals):
+        today = datetime.date.today()
+        return filter(lambda goal: goal.next_date() >= today, goals)
 
     def __unicode__(self):
         return ", ".join(["creation_text=" + self.creation_text, "created_at=" + str(self.created_at),

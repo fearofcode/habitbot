@@ -78,9 +78,9 @@ class Goal(models.Model):
             return self.next_instance_after_date(last.created_at)
 
     @classmethod
-    def get_current_instances(self, goals):
+    def get_current_goals(self, goals):
         today = datetime.date.today()
-        return filter(lambda goal: goal.next_date() >= today, goals)
+        return filter(lambda goal: goal.next_date() == today, goals)
 
     def __unicode__(self):
         return ", ".join(["creation_text=" + self.creation_text, "created_at=" + str(self.created_at),
@@ -90,11 +90,14 @@ class Instance(models.Model):
     goal = models.ForeignKey(Goal)
     created_at = models.DateField()
     done = models.BooleanField(default=False)
-    due_at = models.DateField(null=True, blank=True)
 
     def compute_due_at(self):
         return self.goal.next_instance_after_date(self.created_at)
 
     def __unicode__(self):
         return ", ".join(["goal=<" + str(self.goal) + ">", "created_at=" + str(self.created_at)])
+
+    @classmethod
+    def get_completed_goals(self):
+        return Instance.objects.filter(done=True, created_at=datetime.date.today())
 

@@ -6,3 +6,5 @@ body {
 #new-goal { margin-bottom: 40px }
 
 .help-inline { border: solid black 1px; background-color: #ffc; padding: 8px }
+
+.done { text-decoration: line-through }

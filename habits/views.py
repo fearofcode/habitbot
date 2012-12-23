@@ -63,7 +63,10 @@ def new_goal(request):
 
         except Exception:
             error_message = "Invalid goal. Please enter a correctly formatted goal."
-            return render_to_response("main.html", {'goals': goals, 'error_message': error_message},
+            return render_to_response("main.html", {'goals': goals,
+                                                    'instances': instances,
+                                                    'completed_goals': completed_goals,
+                                                    'error_message': error_message},
                 context_instance=RequestContext(request))
 
         g.save()
@@ -72,5 +75,8 @@ def new_goal(request):
 
     except KeyError:
         error_message = "Please enter a valid goal"
-        return render_to_response("main.html", {'goals': goals, 'error_message': error_message},
+        return render_to_response("main.html", {'goals': goals,
+                                                'instances': instances,
+                                                'completed_goals': completed_goals,
+                                                'error_message': error_message},
             context_instance=RequestContext(request))

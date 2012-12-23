@@ -62,7 +62,9 @@
 
                 <button type="submit" class="btn">Done</button>
             </form>
-        {% else %}
+        {% endif %}
+
+        {% if not instances and completed_goals %}
             <p>Nothing more to do today. Good job meeting your goals for today! Maybe celebrate a little?</p>
         {% endif %}
 

@@ -10,6 +10,7 @@
                     <span class="icon-bar"></span>
                 </a>
                 <a class="brand" href="/">Habitbot</a>
+
             </div>
         </div>
     </div>
@@ -20,10 +21,9 @@
             <h1>Change your life, one day at a time</h1>
             <p>Habitbot is a simple, free application that lets you track goals you want to do on a regular, recurring basis, like exercising or working on a side project. Habitbot will track streaks of keeping up the goals you set out on so that you can look back and be proud of what you've accomplished so far in the hopes that you'll continue the progress you've already made.</p>
 
-            {% if user %}
-                {{ user.username }}
-            {% endif %}
-            <a href="{% url socialauth_begin "twitter" %}">Login with Twitter</a>
+            <a href="{% url socialauth_begin "twitter" %}">
+                <button class="btn btn-large btn-primary" type="button">Sign in with Twitter</button>
+            </a>
         </div>
 
         <div class="row">

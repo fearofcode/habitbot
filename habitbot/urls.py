@@ -1,4 +1,5 @@
 from django.conf.urls import patterns, include, url
+from habits.views import home, done, logout, error
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -9,9 +10,11 @@ from habits.models import Goal
 admin.site.register(Goal)
 
 urlpatterns = patterns('',
-    # Examples:
-    url(r'^$', 'habits.views.home', name='home'),
-
+    url(r'', include('social_auth.urls')),
+    url(r'^$', home, name='home'),
+    url(r'^done/$', done, name='done'),
+    url(r'^error/$', error, name='error'),
+    url(r'^logout/$', logout, name='logout'),
     url(r'^habits/', include('habits.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:

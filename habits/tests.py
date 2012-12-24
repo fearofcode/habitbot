@@ -23,6 +23,8 @@ class GoalTest(TestCase):
         self.byday_goal.save()
 
         self.today = datetime.date.today()
+        self.tomorrow = self.today + datetime.timedelta(days=1)
+        self.day_after_tomorrow = self.today + datetime.timedelta(days=2)
 
     def test_parse_goal(self):
         """
@@ -58,3 +60,20 @@ class GoalTest(TestCase):
         self.assertRaises(InvalidInput, goal.parse, "Do something every hour")
         self.assertRaises(InvalidInput, goal.parse, "Do something every minute")
         self.assertRaises(InvalidInput, goal.parse, "Do something every second")
+
+    def test_generating_scheduled_instances(self):
+        """
+        Tests generating additional times to complete a goal after it's entered.
+        """
+
+        #print self.simple_goal.generate_next_scheduled_instances(self.today, 3)
+        #print [self.today, self.tomorrow, self.day_after_tomorrow]
+
+        self.assertEqual(self.simple_goal.generate_next_scheduled_instances(self.today, 3),
+            [self.today, self.tomorrow, self.day_after_tomorrow])
+
+        self.assertEqual(self.simple_goal.generate_next_scheduled_instances(self.tomorrow, 3),
+            [self.tomorrow, self.day_after_tomorrow, self.today + datetime.timedelta(days=3)])
+
+        self.assertEqual(self.byday_goal.generate_next_scheduled_instances(datetime.date(2013, 1, 9), 3),
+            [datetime.date(2013, 1, 9), datetime.date(2013, 1, 11), datetime.date(2013, 1, 14)])

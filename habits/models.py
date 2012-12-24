@@ -58,6 +58,21 @@ class Goal(models.Model):
         if not self.rrule.startswith("DTSTART:"):
             self.rrule = "DTSTART:" + self.dtstart.strftime("%Y%m%d") + "\n" + self.rrule
 
+    def generate_next_scheduled_instances(self, start, n):
+        rr = rrule.rrulestr(self.rrule)
+
+        datetimes = []
+
+        for i in range(0, n):
+            if len(datetimes) == 0:
+                last_date = datetime.datetime(start.year, start.month, start.day) - datetime.timedelta(days=1)
+            else:
+                last_date = datetimes[-1]
+
+            datetimes.append(rr.after(last_date))
+
+        return [dt.date() for dt in datetimes]
+
     def __unicode__(self):
         return ", ".join(["creation_text=" + self.creation_text,
                             "created_at=" + str(self.created_at),
@@ -66,3 +81,7 @@ class Goal(models.Model):
                             "dtstart=" + str(self.dtstart),
                             "user=" + str(self.user)],
                         )
+
+class ScheduledInstance(models.Model):
+    goal = models.ForeignKey(Goal)
+    date = models.DateField()

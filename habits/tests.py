@@ -64,6 +64,23 @@ class GoalTest(TestCase):
         self.byday_goal.instance_set.create(created_at=datetime.date(2013, 1, 7))
         self.assertEqual(self.byday_goal.next_date(), datetime.date(2013, 1, 9))
 
+    def test_next_date(self):
+        """
+        A goal's next date is always at least today, regardless of what completions exist.
+        """
+
+        simple_goal_text = "Go for a walk every day"
+
+        two_days_ago = self.today - datetime.timedelta(days=2)
+        two_days_str = two_days_ago.strftime("%Y%m%d")
+        g = Goal()
+        g.creation_text = "foo"
+        g.description = "foo"
+        g.rrule = "rrule=DTSTART:" + two_days_str + "\nRRULE:FREQ=DAILY;INTERVAL=1"
+        g.dtstart = two_days_ago
+
+        self.assertEqual(g.next_date(), self.today)
+
     def test_weekly_goals(self):
         goal_text = "Do a timed mile run every other week"
 

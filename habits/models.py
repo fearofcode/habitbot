@@ -72,10 +72,12 @@ class Goal(models.Model):
     def next_date(self):
         last = self.last_completion()
 
+        today = datetime.date.today()
+
         if not last:
-            return self.dtstart
+            return max(self.dtstart, today)
         else:
-            return self.next_instance_after_date(last.created_at)
+            return max(self.next_instance_after_date(last.created_at), today)
 
     @classmethod
     def get_current_goals(self, goals):

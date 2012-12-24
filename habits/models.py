@@ -3,6 +3,7 @@ from django.db import models
 import datetime
 from dateutil import rrule
 from recurrent import RecurringEvent
+from django.contrib.auth.models import User
 
 class InvalidInput(Exception):
     def __init__(self, value):
@@ -14,7 +15,7 @@ class InvalidInput(Exception):
 class Goal(models.Model):
     EVERY = "every"
 
-    user = models.ForeignKey(models.User)
+    user = models.ForeignKey(User)
     created_at = models.DateField(auto_now_add=True)
 
     creation_text = models.CharField(max_length=200) # for debugging in case i fuck this up

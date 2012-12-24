@@ -1,26 +1,25 @@
-"""
-This file demonstrates writing tests using the unittest module. These will pass
-when you run "manage.py test".
-
-Replace this with more appropriate tests for your application.
-"""
-
 from django.test import TestCase
 from habits.models import Goal, InvalidInput
+from django.contrib.auth.models import User
 import datetime
 
 class GoalTest(TestCase):
     def setUp(self):
+        user = User(username="foo", password="blah1234")
+        user.save()
+        
         simple_goal_text = "Go for a walk every day"
 
         self.simple_goal = Goal()
         self.simple_goal.parse(simple_goal_text)
+        self.simple_goal.user = user
         self.simple_goal.save()
 
         byday_text = "Go to the gym every mon wed and fri starting jan 7 2013"
 
         self.byday_goal = Goal()
         self.byday_goal.parse(byday_text)
+        self.byday_goal.user = user
         self.byday_goal.save()
 
         self.today = datetime.date.today()

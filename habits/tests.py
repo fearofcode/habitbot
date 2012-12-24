@@ -86,20 +86,50 @@ class GoalTest(TestCase):
         """
 
         five_days_ago = self.today - datetime.timedelta(days=5)
+        four_days_ago = self.today - datetime.timedelta(days=4)
 
         old_goal = Goal()
         old_goal.user = self.user
         old_goal.created_at = five_days_ago
         old_goal.creation_text = "foo"
         old_goal.description = "foo"
-        old_goal.dtstart = five_days_ago.strftime("%Y%m%d")
-        old_goal.rrule = 'DTSTART:' + old_goal.dtstart + '\nRRULE:FREQ=DAILY;INTERVAL=1'
+        old_goal.dtstart = five_days_ago
+        old_goal.rrule = 'DTSTART:' + old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1'
+        old_goal.save()
 
         self.byday_goal.delete()
 
+        self.assertEquals(Goal.objects.count(), 2)
+
         Goal.create_all_scheduled_instances(five_days_ago, 5)
 
-        #assertEquals(ScheduledInstance.objects.count(), 10)
+        # 5*2 = 10
+        self.assertEquals(ScheduledInstance.objects.count(), 10)
+
+        Goal.create_all_scheduled_instances(four_days_ago, 4)
+
+        self.assertEquals(ScheduledInstance.objects.count(), 10)
+
+        Goal.create_all_scheduled_instances(four_days_ago, 5)
+
+        # one for the newer goal already exists
+        self.assertEquals(ScheduledInstance.objects.count(), 11)
+
+    def test_getting_todays_goals(self):
+        self.byday_goal.delete()
+
+        self.assertEquals(Goal.objects.count(), 1)
+
+        self.simple_goal.create_scheduled_instances(self.today, 5)
+
+        first_instance = self.simple_goal.scheduledinstance_set.all()[0]
+
+        self.assertEquals(Goal.goals_for_today(self.user), [first_instance])
+
+        first_instance.completed = True
+        first_instance.save()
+
+        self.assertEquals(Goal.goals_for_today(self.user), [])
 
 class ScheduledInstanceTest(TestCase):
     def test_scheduled_instance_uniqueness(self):

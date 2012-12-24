@@ -1,9 +1,12 @@
 from django.db import models
 
+import itertools
 import datetime
 from dateutil import rrule
 from recurrent import RecurringEvent
 from django.contrib.auth.models import User
+
+from django.db import IntegrityError
 
 class InvalidInput(Exception):
     def __init__(self, value):
@@ -73,9 +76,34 @@ class Goal(models.Model):
 
         return [dt.date() for dt in datetimes]
 
+    def create_scheduled_instances(self, start, n):
+        dates = self.generate_next_scheduled_instances(start, n)
+        instances = [ScheduledInstance(goal=self, date=d) for d in dates]
+
+        for instance in instances:
+            try:
+                instance.save()
+            except IntegrityError:
+                pass
+
     @classmethod
     def create_all_scheduled_instances(self, start, n):
-        pass
+        for goal in Goal.objects.all():
+            goal.create_scheduled_instances(start, n)
+
+    @classmethod
+    def completed_goals_for_today_by_type(self, user, completed):
+        instances = [goal.scheduledinstance_set.filter(date=datetime.date.today(), completed=completed) for
+                     goal in Goal.objects.filter(user=user)]
+        return list(itertools.chain.from_iterable(instances))
+
+    @classmethod
+    def completed_goals_for_today(self, user):
+        return self.completed_goals_for_today_by_type(user, True)
+
+    @classmethod
+    def goals_for_today(self, user):
+        return self.completed_goals_for_today_by_type(user, False)
 
     def __unicode__(self):
         return ", ".join(["creation_text=" + self.creation_text,
@@ -89,6 +117,10 @@ class Goal(models.Model):
 class ScheduledInstance(models.Model):
     goal = models.ForeignKey(Goal)
     date = models.DateField()
+    completed = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return "goal = " + self.goal.creation_text + ", date = " + str(self.date)
 
     class Meta:
         unique_together = (("goal", "date"),)

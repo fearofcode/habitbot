@@ -39,6 +39,36 @@
             </fieldset>
         </form>
 
+        {% if completed or todo %}
+            <h2>For today</h2>
+        {% endif %}
+
+        {% if completed %}
+            <ul>
+                {% for instance in completed %}
+                    <li class="done">{{ instance.goal.description }}</li>
+                {% endfor %}
+            </ul>
+
+        {% endif %}
+
+        {% if todo %}
+            <form method="POST" action="/habits/completed/">
+                {% csrf_token %}
+
+                {% for instance in todo %}
+                    <label class="checkbox">
+                        <input type="checkbox" name="instance" id="goal{{ forloop.counter }}" value="{{ instance.id }}">
+                        {{ instance.goal.description }}
+                    </label>
+                {% endfor %}
+
+                <button type="submit" class="btn">Done</button>
+            </form>
+        {% else %}
+            <p>Nothing more to do today. Good job meeting your goals for today! Maybe celebrate a little?</p>
+        {% endif %}
+
         <h2>Current goals</h2>
 
         {% if goals %}

@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 
-from habits.models import Goal
+from habits.models import Goal, ScheduledInstance
 import datetime
 
 
@@ -43,9 +43,35 @@ def logout(request):
 @login_required
 def main(request):
     goals = Goal.objects.filter(user=request.user)
+    todo = Goal.goals_for_today(request.user)
+    completed = Goal.completed_goals_for_today(request.user)
 
-    return render_to_response("main.html", {'goals': goals},
+    return render_to_response("main.html", {'goals': goals,
+                                            'todo': todo,
+                                            'completed': completed},
                                 context_instance=RequestContext(request))
+
+@login_required
+def completed(request):
+    goals = Goal.objects.all()
+    todo = Goal.goals_for_today(request.user)
+    completed = Goal.completed_goals_for_today(request.user)
+
+    try:
+        instance_id = request.POST['instance']
+
+        instance = get_object_or_404(ScheduledInstance, pk = instance_id)
+
+        instance.completed=True
+
+        instance.save()
+
+        return HttpResponseRedirect(reverse("habits.views.main"))
+
+    except KeyError:
+        messages.error(request, "Please choose a goal to complete.")
+
+        return HttpResponseRedirect(reverse("habits.views.main"))
 
 @login_required
 def delete_goal(request, goal_id):
@@ -54,12 +80,13 @@ def delete_goal(request, goal_id):
 
     return HttpResponseRedirect(reverse("habits.views.main"))
 
-
 @login_required
 def new_goal(request):
     error_message = None
     goals = Goal.objects.filter(user=request.user)
-    
+    todo = Goal.goals_for_today(request.user)
+    completed = Goal.completed_goals_for_today(request.user)
+
     try:
         goal_text = request.POST['goal_text']
 
@@ -75,11 +102,14 @@ def new_goal(request):
 
         g.user = request.user
         g.save()
+        g.create_scheduled_instances(datetime.date.today(), 5)
 
         return HttpResponseRedirect(reverse("habits.views.main"))
 
     except KeyError:
         error_message = "Please enter a valid goal"
         return render_to_response("main.html", {'goals': goals,
+                                                'todo': todo,
+                                                'completed': completed,
                                                 'error_message': error_message},
             context_instance=RequestContext(request))

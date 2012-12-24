@@ -56,50 +56,6 @@ class Goal(models.Model):
         if not self.rrule.startswith("DTSTART:"):
             self.rrule = "DTSTART:" + self.dtstart.strftime("%Y%m%d") + "\n" + self.rrule
 
-    def last_completion(self):
-        last = None
-
-        try:
-            return self.instance_set.order_by('created_at')[0]
-        except IndexError:
-            return None
-
-    def next_instance_after_date(self, last):
-        rr = rrule.rrulestr(self.rrule)
-        dt = datetime.datetime(last.year, last.month, last.day)
-        return rr.after(dt).date()
-
-    def next_date(self):
-        last = self.last_completion()
-
-        today = datetime.date.today()
-
-        if not last:
-            return max(self.dtstart, today)
-        else:
-            return max(self.next_instance_after_date(last.created_at), today)
-
-    @classmethod
-    def get_current_goals(self, goals):
-        today = datetime.date.today()
-        return filter(lambda goal: goal.next_date() == today, goals)
-
     def __unicode__(self):
         return ", ".join(["creation_text=" + self.creation_text, "created_at=" + str(self.created_at),
                 "description=" + self.description, "rrule=" + self.rrule, "dtstart=" + str(self.dtstart)])
-
-class Instance(models.Model):
-    goal = models.ForeignKey(Goal)
-    created_at = models.DateField()
-    done = models.BooleanField(default=False)
-
-    def compute_due_at(self):
-        return self.goal.next_instance_after_date(self.created_at)
-
-    def __unicode__(self):
-        return ", ".join(["goal=<" + str(self.goal) + ">", "created_at=" + str(self.created_at)])
-
-    @classmethod
-    def get_completed_goals(self):
-        return Instance.objects.filter(done=True, created_at=datetime.date.today())
-

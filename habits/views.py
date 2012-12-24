@@ -58,7 +58,7 @@ def delete_goal(request, goal_id):
 @login_required
 def new_goal(request):
     error_message = None
-    goals = Goal.objects.all()
+    goals = Goal.objects.filter(user=request.user)
     
     try:
         goal_text = request.POST['goal_text']

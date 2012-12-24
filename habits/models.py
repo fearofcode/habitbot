@@ -59,5 +59,10 @@ class Goal(models.Model):
             self.rrule = "DTSTART:" + self.dtstart.strftime("%Y%m%d") + "\n" + self.rrule
 
     def __unicode__(self):
-        return ", ".join(["creation_text=" + self.creation_text, "created_at=" + str(self.created_at),
-                "description=" + self.description, "rrule=" + self.rrule, "dtstart=" + str(self.dtstart)])
+        return ", ".join(["creation_text=" + self.creation_text,
+                            "created_at=" + str(self.created_at),
+                            "description=" + self.description,
+                            "rrule=" + self.rrule,
+                            "dtstart=" + str(self.dtstart),
+                            "user=" + str(self.user)],
+                        )

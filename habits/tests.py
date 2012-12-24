@@ -1,25 +1,27 @@
 from django.test import TestCase
-from habits.models import Goal, InvalidInput
+from django.db import IntegrityError
+
+from habits.models import Goal, InvalidInput, ScheduledInstance
 from django.contrib.auth.models import User
 import datetime
 
 class GoalTest(TestCase):
     def setUp(self):
-        user = User(username="foo", password="blah1234")
-        user.save()
+        self.user = User(username="foo", password="blah1234")
+        self.user.save()
 
         simple_goal_text = "Go for a walk every day"
 
         self.simple_goal = Goal()
         self.simple_goal.parse(simple_goal_text)
-        self.simple_goal.user = user
+        self.simple_goal.user = self.user
         self.simple_goal.save()
 
         byday_text = "Go to the gym every mon wed and fri starting jan 7 2013"
 
         self.byday_goal = Goal()
         self.byday_goal.parse(byday_text)
-        self.byday_goal.user = user
+        self.byday_goal.user = self.user
         self.byday_goal.save()
 
         self.today = datetime.date.today()
@@ -77,3 +79,45 @@ class GoalTest(TestCase):
 
         self.assertEqual(self.byday_goal.generate_next_scheduled_instances(datetime.date(2013, 1, 9), 3),
             [datetime.date(2013, 1, 9), datetime.date(2013, 1, 11), datetime.date(2013, 1, 14)])
+
+    def test_generating_all_scheduled_instances(self):
+        """
+        Tests generating scheduled instances for all goals.
+        """
+
+        five_days_ago = self.today - datetime.timedelta(days=5)
+
+        old_goal = Goal()
+        old_goal.user = self.user
+        old_goal.created_at = five_days_ago
+        old_goal.creation_text = "foo"
+        old_goal.description = "foo"
+        old_goal.dtstart = five_days_ago.strftime("%Y%m%d")
+        old_goal.rrule = 'DTSTART:' + old_goal.dtstart + '\nRRULE:FREQ=DAILY;INTERVAL=1'
+
+        self.byday_goal.delete()
+
+        Goal.create_all_scheduled_instances(five_days_ago, 5)
+
+        #assertEquals(ScheduledInstance.objects.count(), 10)
+
+class ScheduledInstanceTest(TestCase):
+    def test_scheduled_instance_uniqueness(self):
+        user = User(username="foo", password="blah1234")
+        user.save()
+
+        simple_goal_text = "Go for a walk every day"
+
+        self.simple_goal = Goal()
+        self.simple_goal.parse(simple_goal_text)
+        self.simple_goal.user = user
+        self.simple_goal.save()
+
+        self.today = datetime.date.today()
+
+        i1 = ScheduledInstance(goal=self.simple_goal, date=self.today)
+        i1.save()
+
+        dup = ScheduledInstance(goal=self.simple_goal, date=self.today)
+
+        self.assertRaises(IntegrityError, dup.save)

@@ -73,6 +73,10 @@ class Goal(models.Model):
 
         return [dt.date() for dt in datetimes]
 
+    @classmethod
+    def create_all_scheduled_instances(self, start, n):
+        pass
+
     def __unicode__(self):
         return ", ".join(["creation_text=" + self.creation_text,
                             "created_at=" + str(self.created_at),
@@ -85,3 +89,6 @@ class Goal(models.Model):
 class ScheduledInstance(models.Model):
     goal = models.ForeignKey(Goal)
     date = models.DateField()
+
+    class Meta:
+        unique_together = (("goal", "date"),)

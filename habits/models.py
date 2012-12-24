@@ -14,6 +14,7 @@ class InvalidInput(Exception):
 class Goal(models.Model):
     EVERY = "every"
 
+    user = models.ForeignKey(models.User)
     created_at = models.DateField(auto_now_add=True)
 
     creation_text = models.CharField(max_length=200) # for debugging in case i fuck this up

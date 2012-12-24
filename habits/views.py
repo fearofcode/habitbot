@@ -42,7 +42,7 @@ def logout(request):
 
 @login_required
 def main(request):
-    goals = Goal.objects.all()
+    goals = Goal.objects.filter(user=request.user)
 
     return render_to_response("main.html", {'goals': goals},
                                 context_instance=RequestContext(request))
@@ -73,6 +73,7 @@ def new_goal(request):
 
             return HttpResponseRedirect(reverse("habits.views.main"))
 
+        g.user = request.user
         g.save()
 
         return HttpResponseRedirect(reverse("habits.views.main"))

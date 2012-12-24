@@ -7,7 +7,7 @@ class GoalTest(TestCase):
     def setUp(self):
         user = User(username="foo", password="blah1234")
         user.save()
-        
+
         simple_goal_text = "Go for a walk every day"
 
         self.simple_goal = Goal()

@@ -105,6 +105,21 @@ class Goal(models.Model):
     def goals_for_today(self, user):
         return self.completed_goals_for_today_by_type(user, False)
 
+    def current_streak(self):
+        today = datetime.date.today()
+
+        previous_instances = self.scheduledinstance_set.filter(date__lte=today).order_by('-date')
+
+        streak = 0
+
+        for instance in previous_instances:
+            if instance.completed:
+                streak += 1
+            elif instance.date != today:
+                break
+
+        return streak
+
     def __unicode__(self):
         return ", ".join(["creation_text=" + self.creation_text,
                             "created_at=" + str(self.created_at),
@@ -120,7 +135,9 @@ class ScheduledInstance(models.Model):
     completed = models.BooleanField(default=False)
 
     def __unicode__(self):
-        return "goal = " + self.goal.creation_text + ", date = " + str(self.date)
+        return ", ".join(["goal = " + self.goal.creation_text,
+                          "date = " + str(self.date),
+                          "completed = " + str(self.completed)])
 
     class Meta:
         unique_together = (("goal", "date"),)

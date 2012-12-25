@@ -25,6 +25,7 @@ class GoalTest(TestCase):
         self.byday_goal.save()
 
         self.today = datetime.date.today()
+        self.yesterday = datetime.date.today() - datetime.timedelta(days=1)
         self.tomorrow = self.today + datetime.timedelta(days=1)
         self.day_after_tomorrow = self.today + datetime.timedelta(days=2)
 
@@ -67,9 +68,6 @@ class GoalTest(TestCase):
         """
         Tests generating additional times to complete a goal after it's entered.
         """
-
-        #print self.simple_goal.generate_next_scheduled_instances(self.today, 3)
-        #print [self.today, self.tomorrow, self.day_after_tomorrow]
 
         self.assertEqual(self.simple_goal.generate_next_scheduled_instances(self.today, 3),
             [self.today, self.tomorrow, self.day_after_tomorrow])
@@ -130,6 +128,46 @@ class GoalTest(TestCase):
         first_instance.save()
 
         self.assertEquals(Goal.goals_for_today(self.user), [])
+
+    def test_streak_calculation(self):
+        five_days_ago = self.today - datetime.timedelta(days=5)
+        four_days_ago = self.today - datetime.timedelta(days=4)
+
+        old_goal = Goal()
+        old_goal.user = self.user
+        old_goal.created_at = five_days_ago
+        old_goal.creation_text = "foo"
+        old_goal.description = "foo"
+        old_goal.dtstart = five_days_ago
+        old_goal.rrule = 'DTSTART:' + old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1'
+        old_goal.save()
+
+        self.byday_goal.delete()
+
+        self.assertEquals(Goal.objects.count(), 2)
+
+        old_goal.create_scheduled_instances(five_days_ago, 10)
+
+        self.assertEquals(old_goal.current_streak(), 0)
+
+        for instance in old_goal.scheduledinstance_set.filter(date__lt=self.today):
+            instance.completed = True
+            instance.save()
+
+        self.assertEquals(old_goal.current_streak(), 5)
+
+        yesterday_instance = old_goal.scheduledinstance_set.get(date=self.yesterday)
+        today_instance = old_goal.scheduledinstance_set.get(date=self.today)
+
+        yesterday_instance.completed = False
+        yesterday_instance.save()
+
+        self.assertEquals(old_goal.current_streak(), 0)
+
+        today_instance.completed = True
+        today_instance.save()
+
+        self.assertEquals(old_goal.current_streak(), 1)
 
 class ScheduledInstanceTest(TestCase):
     def test_scheduled_instance_uniqueness(self):

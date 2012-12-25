@@ -46,7 +46,7 @@
         {% if completed %}
             <ul>
                 {% for instance in completed %}
-                    <li class="done">{{ instance.goal.description }}</li>
+                    <li><span class="done">{{ instance.goal.description }}</span> -- current streak: {{ instance.goal.current_streak }}</li>
                 {% endfor %}
             </ul>
 
@@ -58,8 +58,8 @@
 
                 {% for instance in todo %}
                     <label class="checkbox">
-                        <input type="checkbox" name="instance" id="goal{{ forloop.counter }}" value="{{ instance.id }}">
-                        {{ instance.goal.description }}
+                        <input type="checkbox" name="instance" value="{{ instance.id }}">
+                        {{ instance.goal.description }} -- current streak: {{ instance.goal.current_streak }}
                     </label>
                 {% endfor %}
 

@@ -46,10 +46,10 @@
         {% if completed %}
 
             <div class="row">
-                <div class="span6">
+                <div class="span8">
                     <ul class="completed-list">
                         {% for instance in completed %}
-                            <li><span class="completed">{{ instance.goal.description }}</span> <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span></li>
+                            <li><i class="icon-ok"></i><span>{{ instance.goal.description }}</span> <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span></li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -59,7 +59,7 @@
         {% if todo %}
 
             <div class="row">
-                <div class="span6">
+                <div class="span8">
                     <form method="POST" action="/habits/completed/">
                         {% csrf_token %}
 
@@ -82,7 +82,7 @@
 
         {% if goals %}
             <div class="row">
-                <div class="span6">
+                <div class="span8">
                     <table class="table table-hover table-condensed">
                         <thead>
                         <tr>

@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, include, url
-from habits.views import home, done, logout, error
+from habits.views import home, done, login, logout, error
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -12,6 +12,7 @@ admin.site.register(Goal)
 urlpatterns = patterns('',
     url(r'', include('social_auth.urls')),
     url(r'^$', home, name='home'),
+    url(r'^login/$', login, name='home'),
     url(r'^done/$', done, name='done'),
     url(r'^complete/twitter/$', done, name='done'),
 

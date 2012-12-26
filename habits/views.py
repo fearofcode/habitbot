@@ -34,6 +34,12 @@ def error(request):
         RequestContext(request))
 
 
+def login(request):
+    if request.user is not None and request.user.is_active:
+        return HttpResponseRedirect('/habits/')
+    else:
+        return HttpResponseRedirect('/')
+
 def logout(request):
     """Logs out user"""
     auth_logout(request)

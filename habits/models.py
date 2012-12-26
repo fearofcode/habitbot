@@ -2,13 +2,13 @@ from django.db import models
 
 import itertools
 import datetime
+import sys
+import re
+
 from dateutil import rrule
 from recurrent import RecurringEvent
 from django.contrib.auth.models import User
-
 from django.db import IntegrityError
-
-import sys
 
 class InvalidInput(Exception):
     def __init__(self, value):
@@ -27,6 +27,8 @@ class Goal(models.Model):
     description = models.CharField(max_length=50)
     rrule = models.CharField(max_length=200)
     dtstart = models.DateField()
+    freq = models.CharField(max_length=100, null=True, blank=True)
+    byday = models.CharField(max_length=100, null=True, blank=True)
 
     def parse(self, goal_text):
         self.creation_text = goal_text
@@ -62,6 +64,12 @@ class Goal(models.Model):
 
         if not self.rrule.startswith("DTSTART:"):
             self.rrule = "DTSTART:" + self.dtstart.strftime("%Y%m%d") + "\n" + self.rrule
+
+        if params.get('freq', None):
+            self.freq = params['freq']
+
+        if params.get('byday', None):
+            self.byday = params['byday']
 
     def generate_next_scheduled_instances(self, start, n):
         rr = rrule.rrulestr(self.rrule)
@@ -124,12 +132,40 @@ class Goal(models.Model):
 
         return streak
 
+    def day_string(self):
+        readable_days = {"MO": "Monday",
+                         "TU": "Tuesday",
+                         "WE": "Wednesday",
+                         "TH": "Thursday",
+                         "FR": "Friday",
+                         "SA": "Saturday",
+                         "SU": "Sunday"}
+
+        if self.freq and self.freq == "daily":
+            return "All"
+        elif self.byday:
+            if self.byday == "MO,TU,WE,TH,FR":
+                return "Weekdays"
+
+            days = self.byday.split(",")
+
+            try:
+                return ", ".join(map(lambda day: readable_days[day], days))
+
+            except KeyError:
+                return ""
+        else:
+            return ""
+
+
     def __unicode__(self):
         return ", ".join(["creation_text=" + self.creation_text,
                             "created_at=" + str(self.created_at),
                             "description=" + self.description,
                             "rrule=" + self.rrule,
                             "dtstart=" + str(self.dtstart),
+                            "freq=" + str(self.freq),
+                            "byday=" + str(self.byday),
                             "user=" + str(self.user)],
                         )
 

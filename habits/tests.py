@@ -39,6 +39,8 @@ class GoalTest(TestCase):
         self.assertEqual(self.simple_goal.rrule,
             'DTSTART:' + self.today.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1')
         self.assertEqual(self.simple_goal.dtstart, datetime.date.today())
+        self.assertEqual(self.simple_goal.freq, "daily")
+        self.assertEqual(self.simple_goal.byday, None)
 
 
     def test_parse_goal_with_start_date_and_by_date(self):
@@ -50,6 +52,8 @@ class GoalTest(TestCase):
         self.assertEqual(self.byday_goal.description, "Go to the gym")
         self.assertEqual(self.byday_goal.rrule, 'DTSTART:20130107\nRRULE:BYDAY=MO,WE,FR;INTERVAL=1;FREQ=WEEKLY')
         self.assertEqual(self.byday_goal.dtstart, datetime.date(2013, 1, 7))
+        self.assertEqual(self.byday_goal.freq, "weekly")
+        self.assertEqual(self.byday_goal.byday, "MO,WE,FR")
 
     def test_complain_invalid_input(self):
         """
@@ -168,6 +172,16 @@ class GoalTest(TestCase):
         today_instance.save()
 
         self.assertEquals(old_goal.current_streak(), 1)
+
+    def test_day_string(self):
+        self.assertEquals(self.simple_goal.day_string(), "All")
+
+        weekday_goal = Goal()
+        weekday_goal.parse("Pet a kitty every weekday")
+
+        self.assertEquals(weekday_goal.day_string(), "Weekdays")
+
+        self.assertEquals(self.byday_goal.day_string(), "Monday, Wednesday, Friday")
 
 class ScheduledInstanceTest(TestCase):
     def test_scheduled_instance_uniqueness(self):

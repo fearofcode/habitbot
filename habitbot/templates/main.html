@@ -44,27 +44,36 @@
         {% endif %}
 
         {% if completed %}
-            <ul>
-                {% for instance in completed %}
-                    <li><span class="done">{{ instance.goal.description }}</span> -- current streak: {{ instance.goal.current_streak }}</li>
-                {% endfor %}
-            </ul>
 
+            <div class="row">
+                <div class="span6">
+                    <ul class="completed-list">
+                        {% for instance in completed %}
+                            <li><span class="completed">{{ instance.goal.description }}</span> <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
         {% endif %}
 
         {% if todo %}
-            <form method="POST" action="/habits/completed/">
-                {% csrf_token %}
 
-                {% for instance in todo %}
-                    <label class="checkbox">
-                        <input type="checkbox" name="instance" value="{{ instance.id }}">
-                        {{ instance.goal.description }} -- current streak: {{ instance.goal.current_streak }}
-                    </label>
-                {% endfor %}
+            <div class="row">
+                <div class="span6">
+                    <form method="POST" action="/habits/completed/">
+                        {% csrf_token %}
 
-                <button type="submit" class="btn">Done</button>
-            </form>
+                        {% for instance in todo %}
+                            <label class="checkbox">
+                                <input type="checkbox" name="instance" value="{{ instance.id }}">
+                                {{ instance.goal.description }} <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span>
+                            </label>
+                        {% endfor %}
+
+                        <button type="submit" class="btn">Done</button>
+                    </form>
+                </div>
+            </div>
         {% else %}
             <p>Nothing more to do today. Good job meeting your goals for today! Maybe celebrate a little?</p>
         {% endif %}
@@ -72,15 +81,35 @@
         <h2>Current goals</h2>
 
         {% if goals %}
-            <ul>
-                {% for goal in goals %}
-                    <li>{{ goal.creation_text }}, started {{ goal.created_at }}
-                        <form method="POST" action="/habits/delete_goal/{{ goal.id }}/" class="form-inline">
-                            {% csrf_token %}
-                            <button class="btn btn-mini" type="submit">Delete</button>
-                        </form></li>
-                {% endfor %}
-            </ul>
+            <div class="row">
+                <div class="span6">
+                    <table class="table table-hover table-condensed">
+                        <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Started</th>
+                            <th>Days</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for goal in goals %}
+                            <tr>
+                                <td>{{ goal.creation_text }}</td>
+                                <td>{{ goal.created_at }}</td>
+                                <td>{{ goal.day_string }}</td>
+                                <td><form method="POST" action="/habits/delete_goal/{{ goal.id }}/" class="form-inline">
+                                    {% csrf_token %}
+                                    <button class="btn btn-mini" type="submit">Delete</button>
+                                </form></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
 
         {% else %}
             <p>No goals yet. Add a new one above. Here are some examples to get you started:</p>

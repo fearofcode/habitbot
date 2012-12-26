@@ -8,7 +8,7 @@ body {
 .error { border: solid black 1px; background-color: #ffc; margin-bottom: 16px }
 .error p { padding-left: 8px; padding-top: 8px; font-weight: bold }
 
-.done { text-decoration: line-through }
+.completed { text-decoration: line-through }
 
 .hero-unit { padding-top: 10px }
 
@@ -19,3 +19,11 @@ body {
     margin-left: -20px;
     color: #e7e7e7;
 }
+
+.streak {
+    font-variant: small-caps;
+    margin-left: 12px;
+    color: #666;
+    font-weight: bold
+}
+

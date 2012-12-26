@@ -5,6 +5,8 @@ body {
 
 #new-goal { margin-bottom: 40px }
 
+form.delete { text-align: right }
+
 .error { border: solid black 1px; background-color: #ffc; margin-bottom: 16px }
 .error p { padding-left: 8px; padding-top: 8px; font-weight: bold }
 

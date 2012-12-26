@@ -98,7 +98,7 @@
                                 <td>{{ goal.creation_text }}</td>
                                 <td>{{ goal.created_at }}</td>
                                 <td>{{ goal.day_string }}</td>
-                                <td><form method="POST" action="/habits/delete_goal/{{ goal.id }}/" class="form-inline">
+                                <td><form class="delete" method="POST" action="/habits/delete_goal/{{ goal.id }}/" class="form-inline">
                                     {% csrf_token %}
                                     <button class="btn btn-mini" type="submit">Delete</button>
                                 </form></td>

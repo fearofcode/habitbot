@@ -68,6 +68,20 @@ class GoalTest(TestCase):
         self.assertRaises(InvalidInput, goal.parse, "Do something every minute")
         self.assertRaises(InvalidInput, goal.parse, "Do something every second")
 
+    def test_splitting_input(self):
+
+        goal = Goal()
+
+        goal.parse("2 hours of studying every day")
+
+        self.assertEqual(goal.creation_text, "2 hours of studying every day")
+        self.assertEqual(goal.description, "2 hours of studying")
+        self.assertEqual(goal.rrule,
+            'DTSTART:' + self.today.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1')
+        self.assertEqual(goal.dtstart, datetime.date.today())
+        self.assertEqual(goal.freq, "daily")
+        self.assertEqual(goal.byday, None)
+
     def test_generating_scheduled_instances(self):
         """
         Tests generating additional times to complete a goal after it's entered.
@@ -174,6 +188,8 @@ class GoalTest(TestCase):
         self.assertEquals(old_goal.current_streak(), 1)
 
     def test_day_string(self):
+        # TODO handle interval=2 as "every other day", interval=3 as "every 3 days"
+        
         self.assertEquals(self.simple_goal.day_string(), "All")
 
         weekday_goal = Goal()

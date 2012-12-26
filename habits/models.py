@@ -40,12 +40,14 @@ class Goal(models.Model):
 
         self.description = goal_text[:index].strip()
 
+        recurring_text = goal_text[index:].strip()
+
         recurring_event = RecurringEvent()
 
         result = None
 
         try:
-            result = recurring_event.parse(self.creation_text)
+            result = recurring_event.parse(recurring_text)
         except ValueError:
             raise InvalidInput("Not a recurring rule or not valid input")
 

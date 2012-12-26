@@ -13,6 +13,8 @@ urlpatterns = patterns('',
     url(r'', include('social_auth.urls')),
     url(r'^$', home, name='home'),
     url(r'^done/$', done, name='done'),
+    url(r'^complete/twitter/$', done, name='done'),
+
     url(r'^error/$', error, name='error'),
     url(r'^logout/$', logout, name='logout'),
     url(r'^habits/', include('habits.urls')),

@@ -8,6 +8,8 @@ from django.contrib.auth.models import User
 
 from django.db import IntegrityError
 
+import sys
+
 class InvalidInput(Exception):
     def __init__(self, value):
         self.value = value
@@ -85,6 +87,8 @@ class Goal(models.Model):
                 instance.save()
             except IntegrityError:
                 pass
+            else:
+                print >>sys.stderr, "Created scheduled instance: " + str(instance)
 
     @classmethod
     def create_all_scheduled_instances(self, start, n):

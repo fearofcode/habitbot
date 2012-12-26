@@ -135,6 +135,9 @@ class Goal(models.Model):
         return streak
 
     def day_string(self):
+        unit_types = {"daily": "day",
+                      "monthly": "month",
+                      "yearly": "year"}
         readable_days = {"MO": "Monday",
                          "TU": "Tuesday",
                          "WE": "Wednesday",
@@ -143,8 +146,21 @@ class Goal(models.Model):
                          "SA": "Saturday",
                          "SU": "Sunday"}
 
-        if self.freq and self.freq == "daily":
-            return "All"
+        if self.freq and (self.freq in unit_types.keys()):
+            try:
+                type = unit_types[self.freq]
+
+                interval = int(re.search("INTERVAL=(\d+)", self.rrule).groups(0)[0])
+
+                if interval == 1:
+                    return "Every %s" % type
+                elif interval == 2:
+                    return "Every other %s" % type
+                else:
+                    return "Every %d %ss" % (interval, type)
+            except Exception:
+                return ""
+
         elif self.byday:
             if self.byday == "MO,TU,WE,TH,FR":
                 return "Weekdays"

@@ -68,6 +68,8 @@ class GoalTest(TestCase):
         self.assertRaises(InvalidInput, goal.parse, "Do something every minute")
         self.assertRaises(InvalidInput, goal.parse, "Do something every second")
 
+        self.assertRaises(InvalidInput, goal.parse, "Go to the doctor once a decade")
+
     def test_splitting_input(self):
 
         goal = Goal()
@@ -189,8 +191,8 @@ class GoalTest(TestCase):
 
     def test_day_string(self):
         # TODO handle interval=2 as "every other day", interval=3 as "every 3 days"
-        
-        self.assertEquals(self.simple_goal.day_string(), "All")
+
+        self.assertEquals(self.simple_goal.day_string(), "Every day")
 
         weekday_goal = Goal()
         weekday_goal.parse("Pet a kitty every weekday")
@@ -198,6 +200,17 @@ class GoalTest(TestCase):
         self.assertEquals(weekday_goal.day_string(), "Weekdays")
 
         self.assertEquals(self.byday_goal.day_string(), "Monday, Wednesday, Friday")
+
+        interval_goal = Goal()
+        interval_goal.user = self.user
+        interval_goal.parse("Pet a kitty every other day")
+
+        self.assertEquals(interval_goal.day_string(), "Every other day")
+
+        interval_goal2 = Goal()
+        interval_goal2.parse("Pet a kitty every 3 days")
+
+        self.assertEquals(interval_goal2.day_string(), "Every 3 days")
 
 class ScheduledInstanceTest(TestCase):
     def test_scheduled_instance_uniqueness(self):

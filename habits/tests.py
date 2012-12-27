@@ -149,6 +149,25 @@ class GoalTest(TestCase):
 
         self.assertEquals(Goal.goals_for_today(self.user), [])
 
+        five_days_ago = self.today - datetime.timedelta(days=5)
+
+        old_goal = Goal()
+        old_goal.user = self.user
+        old_goal.created_at = five_days_ago
+        old_goal.creation_text = "foo"
+        old_goal.description = "foo"
+        old_goal.dtstart = five_days_ago
+        old_goal.rrule = 'DTSTART:' + old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=WEEKLY;INTERVAL=1'
+        old_goal.save()
+
+        old_goal.create_scheduled_instances(five_days_ago, 5)
+
+        print "scheduled instances=", old_goal.scheduledinstance_set.all()
+
+        instance = old_goal.scheduledinstance_set.all()[0]
+
+        self.assertEquals(Goal.goals_for_today(self.user), [instance])
+
     def test_streak_calculation(self):
         five_days_ago = self.today - datetime.timedelta(days=5)
         four_days_ago = self.today - datetime.timedelta(days=4)
@@ -190,7 +209,6 @@ class GoalTest(TestCase):
         self.assertEquals(old_goal.current_streak(), 1)
 
     def test_day_string(self):
-        # TODO handle interval=2 as "every other day", interval=3 as "every 3 days"
 
         self.assertEquals(self.simple_goal.day_string(), "Every day")
 
@@ -211,24 +229,38 @@ class GoalTest(TestCase):
         interval_goal2.parse("Pet a kitty every 3 days")
 
         self.assertEquals(interval_goal2.day_string(), "Every 3 days")
-
+        
 class ScheduledInstanceTest(TestCase):
-    def test_scheduled_instance_uniqueness(self):
-        user = User(username="foo", password="blah1234")
-        user.save()
+    def setUp(self):
+        self.user = User(username="foo", password="blah1234")
+        self.user.save()
 
         simple_goal_text = "Go for a walk every day"
 
         self.simple_goal = Goal()
         self.simple_goal.parse(simple_goal_text)
-        self.simple_goal.user = user
+        self.simple_goal.user = self.user
         self.simple_goal.save()
 
         self.today = datetime.date.today()
 
-        i1 = ScheduledInstance(goal=self.simple_goal, date=self.today)
-        i1.save()
+        self.i1 = ScheduledInstance(goal=self.simple_goal, date=self.today)
+        self.i1.save()
 
+    def test_scheduled_instance_uniqueness(self):
         dup = ScheduledInstance(goal=self.simple_goal, date=self.today)
 
         self.assertRaises(IntegrityError, dup.save)
+
+    def test_due_date(self):
+        self.assertEquals(self.i1.compute_due_date(), self.today + datetime.timedelta(days=1))
+
+        weekly_goal_text = "Do a timed mile run every week"
+
+        weekly_goal = Goal()
+        weekly_goal.parse(weekly_goal_text)
+        weekly_goal.user = self.user
+        weekly_goal.save()
+
+        instance = ScheduledInstance(goal=weekly_goal, date=self.today)
+        self.assertEquals(instance.compute_due_date(), self.today + datetime.timedelta(weeks=1))

@@ -74,7 +74,7 @@ def completed(request):
         messages.error(request, "Please choose a goal to complete.")
 
         return HttpResponseRedirect(reverse("habits.views.main"))
-    
+
 @login_required
 def delete_goal(request, goal_id):
     goal = get_object_or_404(Goal, pk = goal_id)

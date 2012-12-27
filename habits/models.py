@@ -94,6 +94,7 @@ class Goal(models.Model):
 
         for instance in instances:
             try:
+                instance.due_date = instance.compute_due_date()
                 instance.save()
             except IntegrityError:
                 pass
@@ -106,18 +107,20 @@ class Goal(models.Model):
             goal.create_scheduled_instances(start, n)
 
     @classmethod
-    def completed_goals_for_today_by_type(self, user, completed):
-        instances = [goal.scheduledinstance_set.filter(date=datetime.date.today(), completed=completed) for
+    def goals_for_today_by_type(self, user, completed):
+        instances = [goal.scheduledinstance_set.filter(date__lte=datetime.date.today(),
+                                                        due_date__gt=datetime.date.today(),
+                                                    completed=completed) for
                      goal in Goal.objects.filter(user=user)]
         return list(itertools.chain.from_iterable(instances))
 
     @classmethod
     def completed_goals_for_today(self, user):
-        return self.completed_goals_for_today_by_type(user, True)
+        return self.goals_for_today_by_type(user, True)
 
     @classmethod
     def goals_for_today(self, user):
-        return self.completed_goals_for_today_by_type(user, False)
+        return self.goals_for_today_by_type(user, False)
 
     def current_streak(self):
         today = datetime.date.today()
@@ -189,13 +192,22 @@ class Goal(models.Model):
 
 class ScheduledInstance(models.Model):
     goal = models.ForeignKey(Goal)
-    date = models.DateField()
+    date = models.DateField(db_index=True)
     completed = models.BooleanField(default=False)
+    due_date = models.DateField(db_index=True, null=True, blank=True)
+
+    def compute_due_date(self):
+        rr = rrule.rrulestr(self.goal.rrule)
+
+        dt = datetime.datetime(self.date.year, self.date.month, self.date.day)
+
+        return rr.after(dt).date()
 
     def __unicode__(self):
         return ", ".join(["goal = " + self.goal.creation_text,
                           "date = " + str(self.date),
-                          "completed = " + str(self.completed)])
+                          "completed = " + str(self.completed),
+                          "due_date = " + str(self.due_date)])
 
     class Meta:
         unique_together = (("goal", "date"),)

@@ -20,11 +20,6 @@ def home(request):
 
 @login_required
 def done(request):
-    """Login complete view, displays user data"""
-    #ctx = {
-    #    'last_login': request.session.get('social_auth_last_login_backend')
-    #}
-    #return render_to_response('done.html', ctx, RequestContext(request))
     return HttpResponseRedirect('/habits/')
 
 def error(request):
@@ -64,21 +59,22 @@ def completed(request):
     completed = Goal.completed_goals_for_today(request.user)
 
     try:
-        instance_id = request.POST['instance']
+        instance_ids = request.POST.getlist('instance[]')
 
-        instance = get_object_or_404(ScheduledInstance, pk = instance_id)
+        for instance_id in instance_ids:
+            instance = get_object_or_404(ScheduledInstance, pk = instance_id)
 
-        instance.completed=True
+            instance.completed=True
 
-        instance.save()
+            instance.save()
 
         return HttpResponseRedirect(reverse("habits.views.main"))
 
-    except KeyError:
+    except Exception:
         messages.error(request, "Please choose a goal to complete.")
 
         return HttpResponseRedirect(reverse("habits.views.main"))
-
+    
 @login_required
 def delete_goal(request, goal_id):
     goal = get_object_or_404(Goal, pk = goal_id)

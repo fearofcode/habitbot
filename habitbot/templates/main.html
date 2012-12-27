@@ -65,7 +65,7 @@
 
                         {% for instance in todo %}
                             <label class="checkbox">
-                                <input type="checkbox" name="instance" value="{{ instance.id }}">
+                                <input type="checkbox" name="instance[]" value="{{ instance.id }}">
                                 {{ instance.goal.description }} <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span>
                             </label>
                         {% endfor %}

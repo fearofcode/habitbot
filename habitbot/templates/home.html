@@ -13,9 +13,14 @@
             <div class="container">
                 <a class="brand" href="/">Habitbot</a>
 
-                <ul class="nav pull-right">
+                <ul class="nav">
                     <li><a href="http://habitbot.tumblr.com">Blog</a></li>
                 </ul>
+
+                <div class="pull-right">
+                    <a href="{% url socialauth_begin "twitter" %}"
+                       class="btn btn-success" href="#">Sign in</a>
+                </div>
             </div>
         </div>
     </div>
@@ -33,7 +38,7 @@
             <p>Habitbot is a simple, free application that lets you track goals you want to do on a regular, recurring basis, like exercising or working on a side project. Habitbot will track streaks of keeping up the goals you set out on so that you can look back and be proud of what you've accomplished so far in the hopes that you'll continue the progress you've already made.</p>
 
             <a href="{% url socialauth_begin "twitter" %}">
-                <button class="btn btn-large btn-primary" type="button">Sign in with Twitter</button>
+                <button class="btn btn-large btn-primary" type="button">Sign up with Twitter</button>
             </a>
         </div>
 

@@ -9,10 +9,13 @@
         <div class="navbar-inner">
             <div class="container">
                 <a class="brand" href="/">Habitbot</a>
-                <span class="login-blurb">Hi, @{{ user.username }}!</span>
 
-                <ul class="nav pull-right">
+                <ul class="nav">
                     <li><a href="http://habitbot.tumblr.com">Blog</a></li>
+                </ul>
+                
+                <ul class="nav pull-right">
+                    <li><span class="login-blurb">Hi, @{{ user.username }}!</span></li>
                     <li><a href="/logout">Logout</a></li>
                 </ul>
             </div>

@@ -229,7 +229,11 @@ class GoalTest(TestCase):
         interval_goal2.parse("Pet a kitty every 3 days")
 
         self.assertEquals(interval_goal2.day_string(), "Every 3 days")
-        
+
+        weekly_goal = Goal()
+        weekly_goal.parse("do a thing every week")
+
+        self.assertEquals(weekly_goal.day_string(), "Every week")
 class ScheduledInstanceTest(TestCase):
     def setUp(self):
         self.user = User(username="foo", password="blah1234")

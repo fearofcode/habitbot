@@ -13,12 +13,21 @@ body {
     color: #e7e7e7;
 }
 
-.error { border: solid black 1px; background-color: #ffc; margin-bottom: 16px }
-.error p { padding-left: 8px; padding-top: 8px; font-weight: bold }
+.error {
+    border: solid black 1px;
+    background-color: #ffc;
+    margin-bottom: 16px
+}
 
-#new-goal { margin-bottom: 40px }
+.error p {
+    padding-left: 8px;
+    padding-top: 8px;
+    font-weight: bold
+}
 
-.completed-list { list-style-type: none}
+h2 { margin-top: 32px }
+
+.completed-list { list-style-type: none }
 .icon-ok { margin-right: 6px}
 ul.completed-list { margin-left: 0px }
 

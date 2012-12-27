@@ -150,7 +150,7 @@ class Goal(models.Model):
                          "SA": "Saturday",
                          "SU": "Sunday"}
 
-        if self.freq and (self.freq in unit_types.keys()):
+        if self.freq and not self.byday and (self.freq in unit_types.keys()):
             try:
                 type = unit_types[self.freq]
 

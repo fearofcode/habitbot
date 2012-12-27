@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    
+
     // http://stackoverflow.com/questions/37684/how-to-replace-plain-urls-with-links
     function linkify(inputText) {
         var replacedText, replacePattern1, replacePattern2, replacePattern3;

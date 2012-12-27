@@ -162,8 +162,6 @@ class GoalTest(TestCase):
 
         old_goal.create_scheduled_instances(five_days_ago, 5)
 
-        print "scheduled instances=", old_goal.scheduledinstance_set.all()
-
         instance = old_goal.scheduledinstance_set.all()[0]
 
         self.assertEquals(Goal.goals_for_today(self.user), [instance])
@@ -231,6 +229,7 @@ class GoalTest(TestCase):
         self.assertEquals(interval_goal2.day_string(), "Every 3 days")
 
         weekly_goal = Goal()
+        weekly_goal.user = self.user
         weekly_goal.parse("do a thing every week")
 
         self.assertEquals(weekly_goal.day_string(), "Every week")

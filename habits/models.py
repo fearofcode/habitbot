@@ -139,6 +139,7 @@ class Goal(models.Model):
 
     def day_string(self):
         unit_types = {"daily": "day",
+                      "weekly": "week",
                       "monthly": "month",
                       "yearly": "year"}
         readable_days = {"MO": "Monday",

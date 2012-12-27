@@ -4,6 +4,7 @@ body {
 }
 
 .hero-unit { padding-top: 10px }
+#screenshot { text-align: center }
 
 .login-blurb {
     display: block;

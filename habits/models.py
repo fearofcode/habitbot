@@ -200,7 +200,7 @@ class ScheduledInstance(models.Model):
     def compute_due_date(self):
         if "BYDAY=" in self.goal.rrule and "FREQ=WEEKLY" in self.goal.rrule:
             return self.date + datetime.timedelta(days=1)
-        
+
         rr = rrule.rrulestr(self.goal.rrule)
 
         dt = datetime.datetime(self.date.year, self.date.month, self.date.day)

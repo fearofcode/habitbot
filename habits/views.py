@@ -64,7 +64,7 @@ def completed(request):
         for instance_id in instance_ids:
             instance = get_object_or_404(ScheduledInstance, pk = instance_id)
 
-            instance.completed=True
+            instance.progress()
 
             instance.save()
 

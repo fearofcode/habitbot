@@ -41,3 +41,9 @@ form.delete { text-align: right }
     font-weight: bold
 }
 
+.progress {
+    font-variant: small-caps;
+    margin-left: 12px;
+    color: #666;
+    font-weight: bold
+}

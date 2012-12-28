@@ -52,7 +52,14 @@
                 <div class="span12">
                     <ul class="completed-list">
                         {% for instance in completed %}
-                            <li><i class="icon-ok"></i><span class="goaltext">{{ instance.goal.description }}</span> <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span></li>
+                            <li><i class="icon-ok"></i>
+                                <span class="goaltext">{{ instance.goal.description }}</span>
+                                {% if instance.goal.incremental %}
+                                    <span class="progress">
+                                        {{ instance.current_progress }} / {{ instance.goal.goal_amount }}
+                                    </span>
+                                {% endif %}
+                                <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span></li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -69,7 +76,13 @@
                         {% for instance in todo %}
                             <label class="checkbox">
                                 <input type="checkbox" name="instance[]" value="{{ instance.id }}">
-                                <span class="goaltext">{{ instance.goal.description }}</span> <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span>
+                                <span class="goaltext">{{ instance.goal.description }}</span>
+                                {% if instance.goal.incremental %}
+                                    <span class="progress">
+                                        {{ instance.current_progress }} / {{ instance.goal.goal_amount }}
+                                    </span>
+                                {% endif %}
+                                <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span>
                             </label>
                         {% endfor %}
 

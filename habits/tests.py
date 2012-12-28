@@ -47,6 +47,8 @@ class GoalTest(TestCase):
 
         self.assertEqual(incremental_goal.incremental_parse("Go to the gym 3 times"), 3)
         self.assertEqual(incremental_goal.incremental_parse("Go to the gym 3x"), 3)
+        self.assertEqual(incremental_goal.incremental_parse("Go to the gym three times"), 3)
+
         self.assertEqual(incremental_goal.incremental_parse("read the new york times"), None)
         self.assertEqual(incremental_goal.incremental_parse("go for a walk"), None)
 
@@ -80,9 +82,6 @@ class GoalTest(TestCase):
         instance = incremental_goal.scheduledinstance_set.all()[0]
         self.assertEqual(instance.current_progress, 0)
         self.assertEqual(instance.completed, False)
-
-        # TODO add this for regular goals as well so that .progress on a non-incremental goal completes it
-        # but on an incremental goal it advances the goal amount by 1
 
         instance.progress()
 

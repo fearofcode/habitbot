@@ -20,6 +20,25 @@ class InvalidInput(Exception):
 class Goal(models.Model):
     EVERY = "every"
 
+    number_words = { 'one':   1, 'eleven':     11,
+                 'two':   2, 'twelve':     12,
+                 'three': 3, 'thirteen':   13,
+                 'four':  4, 'fourteen':   14,
+                 'five':  5, 'fifteen':    15,
+                 'six':   6, 'sixteen':    16,
+                 'seven': 7, 'seventeen':  17,
+                 'eight': 8, 'eighteen':   18,
+                 'nine':  9, 'nineteen':   19,
+                 'ten':     10,
+                 'twenty':  20,
+                 'thirty':  30,
+                 'forty':   40,
+                 'fifty':   50,
+                 'sixty':   60,
+                 'seventy': 70,
+                 'eighty':  80,
+                 'ninety':  90 }
+
     user = models.ForeignKey(User)
     created_at = models.DateField(auto_now_add=True)
 
@@ -46,7 +65,9 @@ class Goal(models.Model):
             next_to_last_word = description_words[-2]
             if re.match("\d+" , next_to_last_word):
                 num = int(re.match("(\d+)" , next_to_last_word).groups(0)[0])
-
+            elif next_to_last_word in self.number_words.keys():
+                num = self.number_words[next_to_last_word]
+                
         if num is not None and num < 1:
             raise InvalidInput("Cannot do something 0 times")
 

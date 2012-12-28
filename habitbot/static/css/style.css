@@ -32,7 +32,9 @@ h2 { margin-top: 32px }
 .icon-ok { margin-right: 6px}
 ul.completed-list { margin-left: 0px }
 
-form.delete { text-align: right }
+.modal-backdrop, .modal-backdrop.fade.in { opacity: 0.2 }
+.modal-body { text-align: center}
+td.delete { text-align: right }
 
 .streak {
     font-variant: small-caps;

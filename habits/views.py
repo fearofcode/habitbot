@@ -76,6 +76,18 @@ def completed(request):
         return HttpResponseRedirect(reverse("habits.views.main"))
 
 @login_required
+def edit_description(request, goal_id):
+    try:
+        goal = get_object_or_404(Goal, pk = goal_id)
+
+        goal.description = request.POST['description']
+        goal.save()
+    except Exception:
+        messages.error(request, "Please choose a goal and a new description to update to.")
+
+    return HttpResponseRedirect(reverse("habits.views.main"))
+
+@login_required
 def delete_goal(request, goal_id):
     goal = get_object_or_404(Goal, pk = goal_id)
     goal.delete()

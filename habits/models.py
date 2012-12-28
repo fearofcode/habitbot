@@ -242,11 +242,14 @@ class ScheduledInstance(models.Model):
         return rr.after(dt).date()
 
     def progress(self):
-        self.current_progress += 1
+        if self.goal.incremental:
+            self.current_progress += 1
 
-        if self.current_progress == self.goal.goal_amount:
+            if self.current_progress == self.goal.goal_amount:
+                self.completed = True
+        else:
             self.completed = True
-        
+
     def __unicode__(self):
         return ", ".join(["goal = " + self.goal.creation_text,
                           "date = " + str(self.date),

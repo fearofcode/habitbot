@@ -94,6 +94,16 @@ class GoalTest(TestCase):
         self.assertEqual(instance.current_progress, 3)
         self.assertEqual(instance.completed, True)
 
+    def test_progress(self):
+        self.simple_goal.create_scheduled_instances(self.today, 1)
+        instance = self.simple_goal.scheduledinstance_set.all()[0]
+
+        self.assertEqual(instance.completed, False)
+
+        instance.progress()
+
+        self.assertEqual(instance.completed, True)
+
     def test_parse_goal_with_start_date_and_by_date(self):
         """
         Tests that we can parse a goal from text input with different kinds of input.

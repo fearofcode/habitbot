@@ -70,9 +70,9 @@ class GoalTest(TestCase):
         self.assertEqual(incremental_goal.freq, "weekly")
         self.assertEqual(incremental_goal.byday, None)
 
-        #self.assertEqual(incremental_goal.incremental, True)
+        self.assertEqual(incremental_goal.incremental, True)
 
-        #self.assertEqual(incremental_goal.goal_amount, 3)
+        self.assertEqual(incremental_goal.goal_amount, 3)
 
 #        incremental_goal.create_scheduled_instances(self.today, 1)
 #

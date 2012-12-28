@@ -33,15 +33,8 @@ class Goal(models.Model):
     incremental = models.BooleanField(default=False)
     goal_amount = models.IntegerField(default=0)
 
-    def incremental_parse(self, goal_text):
-        index = goal_text.find(self.EVERY)
-
-        if index == -1:
-            raise InvalidInput("Could not find the word '%s' in input" % self.EVERY)
-
-        self.description = goal_text[:index].strip()
-
-        description_words = self.description.split()
+    def incremental_parse(self, description):
+        description_words = description.split()
 
         last_word = description_words[-1]
 
@@ -68,6 +61,15 @@ class Goal(models.Model):
             raise InvalidInput("Could not find the word '%s' in input" % self.EVERY)
 
         self.description = goal_text[:index].strip()
+
+        try:
+            goal_amount = self.incremental_parse(self.description)
+
+            if goal_amount:
+                self.incremental = True
+                self.goal_amount = goal_amount
+        except InvalidInput as i:
+            raise i
 
         recurring_text = goal_text[index:].strip()
 
@@ -217,7 +219,9 @@ class Goal(models.Model):
                             "dtstart=" + str(self.dtstart),
                             "freq=" + str(self.freq),
                             "byday=" + str(self.byday),
-                            "user=" + str(self.user)],
+                            "user=" + str(self.user),
+                            "incremental=" + str(self.incremental),
+                            "goal_amount=" + str(self.goal_amount)]
                         )
 
 class ScheduledInstance(models.Model):
@@ -225,6 +229,7 @@ class ScheduledInstance(models.Model):
     date = models.DateField(db_index=True)
     completed = models.BooleanField(default=False)
     due_date = models.DateField(db_index=True, null=True, blank=True)
+    current_progress = models.IntegerField(default=0)
 
     def compute_due_date(self):
         if "BYDAY=" in self.goal.rrule and "FREQ=WEEKLY" in self.goal.rrule:
@@ -236,11 +241,19 @@ class ScheduledInstance(models.Model):
 
         return rr.after(dt).date()
 
+    def progress(self):
+        self.current_progress += 1
+
+        if self.current_progress == self.goal.goal_amount:
+            self.completed = True
+        
     def __unicode__(self):
         return ", ".join(["goal = " + self.goal.creation_text,
                           "date = " + str(self.date),
                           "completed = " + str(self.completed),
-                          "due_date = " + str(self.due_date)])
+                          "due_date = " + str(self.due_date),
+                          "current_progress = " + str(self.current_progress)],
+                          )
 
     class Meta:
         unique_together = (("goal", "date"),)

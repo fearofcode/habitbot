@@ -30,6 +30,35 @@ class Goal(models.Model):
     freq = models.CharField(max_length=100, null=True, blank=True)
     byday = models.CharField(max_length=100, null=True, blank=True)
 
+    incremental = models.BooleanField(default=False)
+    goal_amount = models.IntegerField(default=0)
+
+    def incremental_parse(self, goal_text):
+        index = goal_text.find(self.EVERY)
+
+        if index == -1:
+            raise InvalidInput("Could not find the word '%s' in input" % self.EVERY)
+
+        self.description = goal_text[:index].strip()
+
+        description_words = self.description.split()
+
+        last_word = description_words[-1]
+
+        num = None
+
+        if re.match("(\d+)x", last_word):
+            num = int(re.match("(\d+)x", last_word).groups(0)[0])
+        elif len(description_words) >= 2 and last_word == "times":
+            next_to_last_word = description_words[-2]
+            if re.match("\d+" , next_to_last_word):
+                num = int(re.match("(\d+)" , next_to_last_word).groups(0)[0])
+
+        if num is not None and num < 1:
+            raise InvalidInput("Cannot do something 0 times")
+
+        return num
+
     def parse(self, goal_text):
         self.creation_text = goal_text
 

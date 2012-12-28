@@ -4,6 +4,7 @@ import itertools
 import datetime
 import sys
 import re
+import string
 
 from dateutil import rrule
 from recurrent import RecurringEvent
@@ -74,6 +75,8 @@ class Goal(models.Model):
         return num
 
     def parse(self, goal_text):
+        goal_text = goal_text.rstrip(string.punctuation)
+
         self.creation_text = goal_text
 
         index = goal_text.find(self.EVERY)

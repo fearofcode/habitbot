@@ -293,6 +293,14 @@ class GoalTest(TestCase):
         weekly_goal.parse("do a thing every week")
 
         self.assertEquals(weekly_goal.day_string(), "Every week")
+
+        bymonthday_goal_text = "Pay rent every first of the month"
+        bymonth_goal = Goal()
+        bymonth_goal.parse(bymonthday_goal_text)
+
+        print "bymonthgoal=", bymonth_goal.rrule
+        self.assertEquals(bymonth_goal.day_string(), "Every month (day 1)")
+
 class ScheduledInstanceTest(TestCase):
     def setUp(self):
         self.user = User(username="foo", password="blah1234")
@@ -337,3 +345,14 @@ class ScheduledInstanceTest(TestCase):
 
         byday_instance = byday_goal.scheduledinstance_set.all()[0]
         self.assertEquals(byday_instance.compute_due_date(), byday_instance.date + datetime.timedelta(days=1))
+
+        bymonthday_goal_text = "Pay rent every first of the month"
+        bymonth_goal = Goal()
+        bymonth_goal.parse(bymonthday_goal_text)
+        bymonth_goal.user = self.user
+        bymonth_goal.save()
+
+        bymonth_goal.create_scheduled_instances(self.today, 5)
+
+        bymonth_instance = bymonth_goal.scheduledinstance_set.all()[0]
+        self.assertEquals(bymonth_instance.compute_due_date(), bymonth_instance.date + datetime.timedelta(days=1))

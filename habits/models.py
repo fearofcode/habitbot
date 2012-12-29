@@ -205,7 +205,15 @@ class Goal(models.Model):
                          "SA": "Saturday",
                          "SU": "Sunday"}
 
-        if self.freq and not self.byday and (self.freq in unit_types.keys()):
+        if "BYMONTHDAY=" in self.rrule:
+            try:
+                print "in the right branch"
+                bymonthday = int(re.search("BYMONTHDAY=(\d+)", self.rrule).groups(0)[0])
+
+                return "Every month (day %d)" % bymonthday
+            except Exception:
+                return ""
+        elif self.freq and not self.byday and (self.freq in unit_types.keys()):
             try:
                 type = unit_types[self.freq]
 
@@ -256,7 +264,8 @@ class ScheduledInstance(models.Model):
     current_progress = models.IntegerField(default=0)
 
     def compute_due_date(self):
-        if "BYDAY=" in self.goal.rrule and "FREQ=WEEKLY" in self.goal.rrule:
+        if ("BYDAY=" in self.goal.rrule and "FREQ=WEEKLY" in self.goal.rrule) or \
+        ("BYMONTHDAY=" in self.goal.rrule and "FREQ=MONTHLY" in self.goal.rrule):
             return self.date + datetime.timedelta(days=1)
 
         rr = rrule.rrulestr(self.goal.rrule)

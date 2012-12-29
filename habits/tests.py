@@ -298,7 +298,6 @@ class GoalTest(TestCase):
         bymonth_goal = Goal()
         bymonth_goal.parse(bymonthday_goal_text)
 
-        print "bymonthgoal=", bymonth_goal.rrule
         self.assertEquals(bymonth_goal.day_string(), "Every month (day 1)")
 
 class ScheduledInstanceTest(TestCase):

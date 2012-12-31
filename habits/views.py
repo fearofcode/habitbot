@@ -10,6 +10,18 @@ from habits.models import Goal, ScheduledInstance
 import datetime
 
 
+def standard_data(request, error_message=None):
+    goals = Goal.objects.filter(user=request.user)
+    todo = Goal.goals_for_today(request.user)
+    completed = Goal.completed_goals_for_today(request.user)
+    tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+
+    return {'goals': goals,
+             'todo': todo,
+             'completed': completed,
+             'tomorrow': tomorrow,
+             'error_message': error_message}
+
 def home(request):
     """Home view, displays login mechanism"""
     if request.user.is_authenticated():
@@ -43,21 +55,11 @@ def logout(request):
 
 @login_required
 def main(request):
-    goals = Goal.objects.filter(user=request.user)
-    todo = Goal.goals_for_today(request.user)
-    completed = Goal.completed_goals_for_today(request.user)
-
-    return render_to_response("main.html", {'goals': goals,
-                                            'todo': todo,
-                                            'completed': completed},
+    return render_to_response("main.html", standard_data(request),
                                 context_instance=RequestContext(request))
 
 @login_required
 def completed(request):
-    goals = Goal.objects.all()
-    todo = Goal.goals_for_today(request.user)
-    completed = Goal.completed_goals_for_today(request.user)
-
     try:
         instance_ids = request.POST.getlist('instance[]')
 
@@ -97,9 +99,6 @@ def delete_goal(request, goal_id):
 @login_required
 def new_goal(request):
     error_message = None
-    goals = Goal.objects.filter(user=request.user)
-    todo = Goal.goals_for_today(request.user)
-    completed = Goal.completed_goals_for_today(request.user)
 
     try:
         goal_text = request.POST['goal_text']
@@ -122,8 +121,5 @@ def new_goal(request):
 
     except KeyError:
         error_message = "Please enter a valid goal"
-        return render_to_response("main.html", {'goals': goals,
-                                                'todo': todo,
-                                                'completed': completed,
-                                                'error_message': error_message},
+        return render_to_response("main.html", standard_data(request, error_message),
             context_instance=RequestContext(request))

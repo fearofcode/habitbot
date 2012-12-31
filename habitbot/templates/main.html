@@ -82,6 +82,12 @@
                                         {{ instance.current_progress }} / {{ instance.goal.goal_amount }}
                                     </span>
                                 {% endif %}
+
+                                {% if instance.due_date != tomorrow %}
+                                    <span class="due-date">
+                                        Due {{ instance.due_date }}
+                                    </span>
+                                {% endif %}
                                 <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span>
                             </label>
                         {% endfor %}
@@ -180,8 +186,4 @@
         {% endif %}
         <hr/>
     </div>
-{% endblock %}
-
-{% block extrascripts %}
-    <script src="/static/js/jquery.jeditable.min.js"></script>
 {% endblock %}

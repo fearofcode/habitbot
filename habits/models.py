@@ -79,7 +79,7 @@ class Goal(models.Model):
 
         self.creation_text = goal_text
 
-        index = goal_text.find(self.EVERY)
+        index = goal_text.lower().find(self.EVERY)
 
         if index == -1:
             raise InvalidInput("Could not find the word '%s' in input" % self.EVERY)

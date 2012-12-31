@@ -49,3 +49,9 @@ td.delete { text-align: right }
     color: #666;
     font-weight: bold
 }
+
+.due-date {
+    font-variant: small-caps;
+    margin-left: 12px;
+    color: #666;
+}

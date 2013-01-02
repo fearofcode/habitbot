@@ -180,7 +180,7 @@ class Goal(models.Model):
     def current_streak(self):
         today = datetime.date.today()
 
-        previous_instances = self.scheduledinstance_set.filter(date__lte=today).order_by('-date')
+        previous_instances = self.past_instances()
 
         streak = 0
 
@@ -191,6 +191,11 @@ class Goal(models.Model):
                 break
 
         return streak
+
+    def past_instances(self):
+        today = datetime.date.today()
+
+        return self.scheduledinstance_set.filter(date__lte=today).order_by('-date')
 
     def day_string(self):
         unit_types = {"daily": "day",

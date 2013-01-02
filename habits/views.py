@@ -5,19 +5,19 @@ from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
+from django.db.models import F
 
 from habits.models import Goal, ScheduledInstance
 import datetime
+import sys
 
 
 def standard_data(request, error_message=None):
-    goals = Goal.objects.filter(user=request.user)
     todo = Goal.goals_for_today(request.user)
     completed = Goal.completed_goals_for_today(request.user)
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
 
-    return {'goals': goals,
-             'todo': todo,
+    return {'todo': todo,
              'completed': completed,
              'tomorrow': tomorrow,
              'error_message': error_message}
@@ -76,6 +76,40 @@ def completed(request):
         messages.error(request, "Please choose a goal to complete.")
 
         return HttpResponseRedirect(reverse("habits.views.main"))
+
+@login_required
+def streaks(request):
+    print >>sys.stderr, "in streaks"
+
+    return render_to_response("streaks.html", {'goals': Goal.objects.filter(user=request.user).select_related('scheduledinstances')},
+        context_instance=RequestContext(request))
+
+@login_required
+def edit_streaks(request):
+    try:
+        instance_ids = request.POST.getlist('instance[]')
+
+        instances = ScheduledInstance.objects.filter(id__in=instance_ids)
+
+        for instance in instances:
+            instance.completed = True
+
+            if instance.goal.incremental:
+                instance.current_progress = instance.goal.goal_amount
+
+            instance.save()
+
+        return HttpResponseRedirect(reverse("habits.views.streaks"))
+
+    except Exception:
+        messages.error(request, "Please choose a goal instance to complete.")
+
+        return HttpResponseRedirect(reverse("habits.views.streaks"))
+
+@login_required
+def goals(request):
+    return render_to_response("goals.html", {'goals': Goal.objects.filter(user=request.user)},
+        context_instance=RequestContext(request))
 
 @login_required
 def edit_description(request, goal_id):

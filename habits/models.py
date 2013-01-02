@@ -197,6 +197,12 @@ class Goal(models.Model):
 
         return self.scheduledinstance_set.filter(date__lte=today).order_by('-date')
 
+    def missed_instances(self):
+        today = datetime.date.today()
+
+        return self.scheduledinstance_set.filter(due_date__lte=today).order_by('-due_date')
+
+
     def day_string(self):
         unit_types = {"daily": "day",
                       "weekly": "week",

@@ -17,7 +17,8 @@ def standard_data(request, error_message=None):
     completed = Goal.completed_goals_for_today(request.user)
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
 
-    return {'todo': todo,
+    return {'goals': Goal.objects.filter(user=request.user).select_related('scheduledinstances'),
+            'todo': todo,
              'completed': completed,
              'tomorrow': tomorrow,
              'error_message': error_message}

@@ -31,6 +31,7 @@
                                         <tr>
                                             <th>Date</th>
                                             <th>Completed</th>
+                                            <th>Skipped</th>
                                         </tr>
                                         </thead>
 
@@ -42,9 +43,19 @@
                                                 <td>
                                                     <label class="checkbox">
                                                         {% if instance.completed %}
-                                                            <input type="checkbox" name="instance[]" value="{{ instance.id }}" checked disabled>
+                                                            <input type="checkbox" name="complete[]" value="{{ instance.id }}" checked disabled>
                                                         {% else %}
-                                                            <input type="checkbox" name="instance[]" value="{{ instance.id }}">
+                                                            <input type="checkbox" name="complete[]" value="{{ instance.id }}">
+                                                        {% endif %}
+                                                    </label>
+                                                </td>
+
+                                                <td>
+                                                    <label class="checkbox">
+                                                        {% if instance.skipped %}
+                                                            <input type="checkbox" name="skip[]" value="{{ instance.id }}" checked disabled>
+                                                        {% else %}
+                                                            <input type="checkbox" name="skip[]" value="{{ instance.id }}">
                                                         {% endif %}
                                                     </label>
                                                 </td>

@@ -23,5 +23,14 @@ $(document).ready(function() {
         var text = $(this).text();
         $(this).html(linkify(text));
     })
+
+    $(".checkbox").hover(
+        function() {
+            $(this).children(".skip").css('display','inline');
+        },
+        function() {
+            $(this).children(".skip").hide();
+        }
+    );
 });
 

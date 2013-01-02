@@ -17,7 +17,8 @@ def standard_data(request, error_message=None):
     completed = Goal.completed_goals_for_today(request.user)
     tomorrow = datetime.date.today() + datetime.timedelta(days=1)
 
-    return {'goals': Goal.objects.filter(user=request.user).select_related('scheduledinstances'),
+    return {'skipped': Goal.skipped_goals_for_today(request.user),
+            'goals': Goal.objects.filter(user=request.user).select_related('scheduledinstances'),
             'todo': todo,
              'completed': completed,
              'tomorrow': tomorrow,
@@ -88,7 +89,7 @@ def streaks(request):
 @login_required
 def edit_streaks(request):
     try:
-        instance_ids = request.POST.getlist('instance[]')
+        instance_ids = request.POST.getlist('complete[]')
 
         instances = ScheduledInstance.objects.filter(id__in=instance_ids)
 
@@ -100,12 +101,20 @@ def edit_streaks(request):
 
             instance.save()
 
+        instance_ids = request.POST.getlist('skip[]')
+
+        instances = ScheduledInstance.objects.filter(id__in=instance_ids).update(skipped=True)
+
         return HttpResponseRedirect(reverse("habits.views.streaks"))
 
     except Exception:
-        messages.error(request, "Please choose a goal instance to complete.")
-
         return HttpResponseRedirect(reverse("habits.views.streaks"))
+
+@login_required
+def skip_instance(request, instance_id):
+    ScheduledInstance.objects.filter(id=instance_id).update(skipped=True)
+
+    return HttpResponseRedirect(reverse("habits.views.main"))
 
 @login_required
 def goals(request):
@@ -129,7 +138,7 @@ def delete_goal(request, goal_id):
     goal = get_object_or_404(Goal, pk = goal_id)
     goal.delete()
 
-    return HttpResponseRedirect(reverse("habits.views.main"))
+    return HttpResponseRedirect(reverse("habits.views.goals"))
 
 @login_required
 def new_goal(request):

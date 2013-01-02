@@ -28,9 +28,10 @@ body {
 
 h2 { margin-top: 32px }
 
-.completed-list { list-style-type: none }
-.icon-ok { margin-right: 6px}
-ul.completed-list { margin-left: 0px }
+.completed-list, .skipped-list { list-style-type: none }
+.icon-ok, .icon-pause { margin-right: 6px}
+ul.completed-list, ul.skipped-list { margin-left: 0px }
+
 
 .modal-backdrop, .modal-backdrop.fade.in { opacity: 0.2 }
 .modal-body { text-align: center}
@@ -54,4 +55,13 @@ td.delete { text-align: right }
     font-variant: small-caps;
     margin-left: 12px;
     color: #666;
+}
+
+.skip {
+    margin-left: 16px;
+    display: none;
+}
+
+.skipped-list li .goaltext {
+    color: #666
 }

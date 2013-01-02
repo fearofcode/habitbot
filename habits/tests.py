@@ -266,6 +266,33 @@ class GoalTest(TestCase):
 
         self.assertEquals(old_goal.current_streak(), 1)
 
+    def test_streak_calculation_with_skipped_goals(self):
+        five_days_ago = self.today - datetime.timedelta(days=5)
+        four_days_ago = self.today - datetime.timedelta(days=4)
+
+        old_goal = Goal()
+        old_goal.user = self.user
+        old_goal.created_at = five_days_ago
+        old_goal.creation_text = "foo"
+        old_goal.description = "foo"
+        old_goal.dtstart = five_days_ago
+        old_goal.rrule = 'DTSTART:' + old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1'
+        old_goal.save()
+
+        self.byday_goal.delete()
+
+        old_goal.create_scheduled_instances(five_days_ago, 10)
+
+        for instance in old_goal.scheduledinstance_set.filter(date__lt=self.today):
+            if instance.date != four_days_ago:
+                instance.completed = True
+                instance.save()
+            else:
+                instance.skipped = True
+                instance.save()
+
+        self.assertEquals(old_goal.current_streak(), 4)
+
     def test_day_string(self):
 
         self.assertEquals(self.simple_goal.day_string(), "Every day")

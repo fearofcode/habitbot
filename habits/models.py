@@ -162,10 +162,19 @@ class Goal(models.Model):
             goal.create_scheduled_instances(start, n)
 
     @classmethod
+    def skipped_goals_for_today(self, user):
+        instances = [goal.scheduledinstance_set.filter(date__lte=datetime.date.today(),
+            due_date__gt=datetime.date.today(),
+            skipped=True) for
+                     goal in Goal.objects.filter(user=user)]
+        return list(itertools.chain.from_iterable(instances))
+
+    @classmethod
     def goals_for_today_by_type(self, user, completed):
         instances = [goal.scheduledinstance_set.filter(date__lte=datetime.date.today(),
                                                         due_date__gt=datetime.date.today(),
-                                                    completed=completed) for
+                                                    completed=completed,
+                                                    skipped=False) for
                      goal in Goal.objects.filter(user=user)]
         return list(itertools.chain.from_iterable(instances))
 
@@ -187,6 +196,8 @@ class Goal(models.Model):
         for instance in previous_instances:
             if instance.completed:
                 streak += 1
+            elif instance.skipped:
+                continue
             elif instance.date != today:
                 break
 
@@ -273,6 +284,7 @@ class ScheduledInstance(models.Model):
     completed = models.BooleanField(default=False)
     due_date = models.DateField(db_index=True, null=True, blank=True)
     current_progress = models.IntegerField(default=0)
+    skipped = models.BooleanField(db_index=True, default=False)
 
     def compute_due_date(self):
         if ("BYDAY=" in self.goal.rrule and "FREQ=WEEKLY" in self.goal.rrule) or \
@@ -299,7 +311,8 @@ class ScheduledInstance(models.Model):
                           "date = " + str(self.date),
                           "completed = " + str(self.completed),
                           "due_date = " + str(self.due_date),
-                          "current_progress = " + str(self.current_progress)],
+                          "current_progress = " + str(self.current_progress),
+                          "skipped = " + str(self.skipped)],
                           )
 
     class Meta:

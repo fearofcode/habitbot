@@ -11,6 +11,16 @@
             </div>
         {% endif %}
 
+        <form method="POST" action="/habits/new_goal/" class="form-inline" id="new-goal">
+            {% csrf_token %}
+
+            <fieldset>
+                <legend>Make a new goal</legend>
+                <input type="text" name="goal_text" placeholder="<action> every <interval>">
+                <button type="submit" class="btn">Add</button>
+            </fieldset>
+        </form>
+
         <h2>Current goals</h2>
 
         {% if goals %}
@@ -85,7 +95,15 @@
 
 
         {% else %}
-            <p>No goals yet. <a href="/habits/">Add a new one now</a>.</p>
+            <p>No goals yet. Add a new one above. Here are some examples to get you started:</p>
+
+            <ul>
+                <li>Go for a walk every day</li>
+                <li>Play 5 games of StarCraft every week</li>
+                <li>Go to the gym every other day</li>
+            </ul>
+
+            <p>The command needs to be in the form <kbd><em>goal</em> every <em>interval</em></kbd> the way the above examples are.</p>
         {% endif %}
     </div>
 {% endblock %}

@@ -29,6 +29,18 @@ class GoalTest(TestCase):
         self.tomorrow = self.today + datetime.timedelta(days=1)
         self.day_after_tomorrow = self.today + datetime.timedelta(days=2)
 
+        self.five_days_ago = self.today - datetime.timedelta(days=5)
+        self.four_days_ago = self.today - datetime.timedelta(days=4)
+
+        self.old_goal = Goal()
+        self.old_goal.user = self.user
+        self.old_goal.created_at = self.five_days_ago
+        self.old_goal.creation_text = "foo"
+        self.old_goal.description = "foo"
+        self.old_goal.dtstart = self.five_days_ago
+        self.old_goal.rrule = 'DTSTART:' + self.old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1'
+        self.old_goal.save()
+
     def test_parse_goal(self):
         """
         Tests that we can parse a goal from text input.
@@ -163,40 +175,26 @@ class GoalTest(TestCase):
         Tests generating scheduled instances for all goals.
         """
 
-        five_days_ago = self.today - datetime.timedelta(days=5)
-        four_days_ago = self.today - datetime.timedelta(days=4)
-
-        old_goal = Goal()
-        old_goal.user = self.user
-        old_goal.created_at = five_days_ago
-        old_goal.creation_text = "foo"
-        old_goal.description = "foo"
-        old_goal.dtstart = five_days_ago
-        old_goal.rrule = 'DTSTART:' + old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1'
-        old_goal.save()
-
         self.byday_goal.delete()
 
         self.assertEquals(Goal.objects.count(), 2)
 
-        Goal.create_all_scheduled_instances(five_days_ago, 5)
+        Goal.create_all_scheduled_instances(self.five_days_ago, 5)
 
         # 5*2 = 10
         self.assertEquals(ScheduledInstance.objects.count(), 10)
 
-        Goal.create_all_scheduled_instances(four_days_ago, 4)
+        Goal.create_all_scheduled_instances(self.four_days_ago, 4)
 
         self.assertEquals(ScheduledInstance.objects.count(), 10)
 
-        Goal.create_all_scheduled_instances(four_days_ago, 5)
+        Goal.create_all_scheduled_instances(self.four_days_ago, 5)
 
         # one for the newer goal already exists
         self.assertEquals(ScheduledInstance.objects.count(), 11)
 
     def test_getting_todays_goals(self):
         self.byday_goal.delete()
-
-        self.assertEquals(Goal.objects.count(), 1)
 
         self.simple_goal.create_scheduled_instances(self.today, 5)
 
@@ -209,89 +207,61 @@ class GoalTest(TestCase):
 
         self.assertEquals(Goal.goals_for_today(self.user), [])
 
-        five_days_ago = self.today - datetime.timedelta(days=5)
+        self.old_goal.rrule = 'DTSTART:' + self.old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=WEEKLY;INTERVAL=1'
+        self.old_goal.save()
 
-        old_goal = Goal()
-        old_goal.user = self.user
-        old_goal.created_at = five_days_ago
-        old_goal.creation_text = "foo"
-        old_goal.description = "foo"
-        old_goal.dtstart = five_days_ago
-        old_goal.rrule = 'DTSTART:' + old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=WEEKLY;INTERVAL=1'
-        old_goal.save()
+        self.old_goal.create_scheduled_instances(self.five_days_ago, 5)
 
-        old_goal.create_scheduled_instances(five_days_ago, 5)
-
-        instance = old_goal.scheduledinstance_set.all()[0]
+        instance = self.old_goal.scheduledinstance_set.all()[0]
 
         self.assertEquals(Goal.goals_for_today(self.user), [instance])
 
     def test_streak_calculation(self):
-        five_days_ago = self.today - datetime.timedelta(days=5)
-        four_days_ago = self.today - datetime.timedelta(days=4)
-
-        old_goal = Goal()
-        old_goal.user = self.user
-        old_goal.created_at = five_days_ago
-        old_goal.creation_text = "foo"
-        old_goal.description = "foo"
-        old_goal.dtstart = five_days_ago
-        old_goal.rrule = 'DTSTART:' + old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1'
-        old_goal.save()
+        self.old_goal.rrule = 'DTSTART:' + self.old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1'
+        self.old_goal.save()
 
         self.byday_goal.delete()
 
         self.assertEquals(Goal.objects.count(), 2)
 
-        old_goal.create_scheduled_instances(five_days_ago, 10)
+        self.old_goal.create_scheduled_instances(self.five_days_ago, 10)
 
-        self.assertEquals(old_goal.current_streak(), 0)
+        self.assertEquals(self.old_goal.current_streak(), 0)
 
-        for instance in old_goal.scheduledinstance_set.filter(date__lt=self.today):
+        # TODO change to update
+        for instance in self.old_goal.scheduledinstance_set.filter(date__lt=self.today):
             instance.completed = True
             instance.save()
 
-        self.assertEquals(old_goal.current_streak(), 5)
+        self.assertEquals(self.old_goal.current_streak(), 5)
 
-        yesterday_instance = old_goal.scheduledinstance_set.get(date=self.yesterday)
-        today_instance = old_goal.scheduledinstance_set.get(date=self.today)
+        yesterday_instance = self.old_goal.scheduledinstance_set.get(date=self.yesterday)
+        today_instance = self.old_goal.scheduledinstance_set.get(date=self.today)
 
         yesterday_instance.completed = False
         yesterday_instance.save()
 
-        self.assertEquals(old_goal.current_streak(), 0)
+        self.assertEquals(self.old_goal.current_streak(), 0)
 
         today_instance.completed = True
         today_instance.save()
 
-        self.assertEquals(old_goal.current_streak(), 1)
+        self.assertEquals(self.old_goal.current_streak(), 1)
 
     def test_streak_calculation_with_skipped_goals(self):
-        five_days_ago = self.today - datetime.timedelta(days=5)
-        four_days_ago = self.today - datetime.timedelta(days=4)
-
-        old_goal = Goal()
-        old_goal.user = self.user
-        old_goal.created_at = five_days_ago
-        old_goal.creation_text = "foo"
-        old_goal.description = "foo"
-        old_goal.dtstart = five_days_ago
-        old_goal.rrule = 'DTSTART:' + old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1'
-        old_goal.save()
-
         self.byday_goal.delete()
 
-        old_goal.create_scheduled_instances(five_days_ago, 10)
+        self.old_goal.create_scheduled_instances(self.five_days_ago, 10)
 
-        for instance in old_goal.scheduledinstance_set.filter(date__lt=self.today):
-            if instance.date != four_days_ago:
+        for instance in self.old_goal.scheduledinstance_set.filter(date__lt=self.today):
+            if instance.date != self.four_days_ago:
                 instance.completed = True
                 instance.save()
             else:
                 instance.skipped = True
                 instance.save()
 
-        self.assertEquals(old_goal.current_streak(), 4)
+        self.assertEquals(self.old_goal.current_streak(), 4)
 
     def test_day_string(self):
 

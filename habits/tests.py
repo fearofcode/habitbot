@@ -229,9 +229,7 @@ class GoalTest(TestCase):
         self.assertEquals(self.old_goal.current_streak(), 0)
 
         # TODO change to update
-        for instance in self.old_goal.scheduledinstance_set.filter(date__lt=self.today):
-            instance.completed = True
-            instance.save()
+        self.old_goal.scheduledinstance_set.filter(date__lt=self.today).update(completed=True)
 
         self.assertEquals(self.old_goal.current_streak(), 5)
 

@@ -26,6 +26,10 @@ body {
     font-weight: bold
 }
 
+.navbar-inverse .brand {
+    color: rgb(255, 255, 255);
+}
+
 h2 { margin-top: 32px }
 
 .completed-list, .skipped-list { list-style-type: none }

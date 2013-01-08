@@ -165,11 +165,15 @@ class Goal(models.Model):
 
         for i in range(0, n):
             if len(datetimes) == 0:
-                last_date = datetime.datetime(start.year, start.month, start.day) - datetime.timedelta(days=1)
+                last_date = start - datetime.timedelta(days=1)
             else:
                 last_date = datetimes[-1]
 
-            datetimes.append(rr.after(last_date))
+            last_date_naive = last_date.replace(tzinfo=None)
+            next_date_naive = rr.after(last_date_naive)
+            next_date_aware = next_date_naive.replace(tzinfo=pytz.utc)
+            
+            datetimes.append(next_date_aware)
 
         return [dt for dt in datetimes]
 
@@ -263,7 +267,6 @@ class Goal(models.Model):
 
         if "BYMONTHDAY=" in self.rrule:
             try:
-                print "in the right branch"
                 bymonthday = int(re.search("BYMONTHDAY=(\d+)", self.rrule).groups(0)[0])
 
                 return "Every month (day %d)" % bymonthday
@@ -327,9 +330,13 @@ class ScheduledInstance(models.Model):
 
         rr = rrule.rrulestr(self.goal.rrule)
 
-        dt = datetime.datetime(self.date.year, self.date.month, self.date.day)
+        date_naive = self.date.replace(tzinfo=None)
 
-        return rr.after(dt)
+        naive = rr.after(date_naive)
+
+        aware = naive.replace(tzinfo=pytz.utc)
+
+        return aware
 
     def progress(self):
         if self.goal.incremental:

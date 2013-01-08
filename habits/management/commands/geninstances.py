@@ -12,7 +12,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         print >>sys.stderr, "Generating additional scheduled instances..."
 
-        today = datetime.date.today()
+        today = Goal.beginning_today()
 
         Goal.create_all_scheduled_instances(today, 5)
 

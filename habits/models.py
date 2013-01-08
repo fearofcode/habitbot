@@ -1,15 +1,18 @@
 from django.db import models
+from django.utils import timezone
 
 import itertools
 import datetime
 import sys
 import re
 import string
+import pytz
 
 from dateutil import rrule
 from recurrent import RecurringEvent
 from django.contrib.auth.models import User
 from django.db import IntegrityError
+from django.db.models.signals import post_save
 
 class InvalidInput(Exception):
     def __init__(self, value):
@@ -17,6 +20,19 @@ class InvalidInput(Exception):
 
     def __str__(self):
         return repr(self.value)
+
+class UserProfile(models.Model):  
+    user = models.OneToOneField(User)  
+    timezone = models.CharField(max_length=100, default="America/Los_Angeles")
+
+    def __str__(self):  
+          return "%s's profile" % self.user  
+
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:  
+       profile, created = UserProfile.objects.get_or_create(user=instance)  
+
+post_save.connect(create_user_profile, sender=User)
 
 class Goal(models.Model):
     EVERY = "every"
@@ -41,17 +57,21 @@ class Goal(models.Model):
                  'ninety':  90 }
 
     user = models.ForeignKey(User)
-    created_at = models.DateField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     creation_text = models.CharField(max_length=200) # for debugging in case i fuck this up
     description = models.CharField(max_length=50)
     rrule = models.CharField(max_length=200)
-    dtstart = models.DateField()
+    dtstart = models.DateTimeField()
     freq = models.CharField(max_length=100, null=True, blank=True)
     byday = models.CharField(max_length=100, null=True, blank=True)
 
     incremental = models.BooleanField(default=False)
     goal_amount = models.IntegerField(default=0)
+
+    @classmethod
+    def beginning_today(self):
+        return timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
     def incremental_parse(self, description):
         description_words = description.split()
@@ -114,8 +134,18 @@ class Goal(models.Model):
         if params['freq'] in ['hourly', 'minutely', 'secondly']:
             raise InvalidInput("Not a recurring rule or not valid input")
 
-        self.dtstart = datetime.datetime.strptime(params['dtstart'], "%Y%m%d").date() if params.has_key('dtstart')\
-            else datetime.date.today()
+        
+        if params.has_key('dtstart'):
+            naive = datetime.datetime.strptime(params['dtstart'], "%Y%m%d") 
+
+            user_tz = pytz.timezone(self.user.userprofile.timezone)
+
+            local_dt = user_tz.localize(naive, is_dst=None)
+            utc_dt = local_dt.astimezone (pytz.utc)
+            
+            self.dtstart = utc_dt
+        else:
+            self.dtstart = Goal.beginning_today()
 
         self.rrule = recurring_event.get_RFC_rrule()
 
@@ -141,7 +171,7 @@ class Goal(models.Model):
 
             datetimes.append(rr.after(last_date))
 
-        return [dt.date() for dt in datetimes]
+        return [dt for dt in datetimes]
 
     def create_scheduled_instances(self, start, n):
         dates = self.generate_next_scheduled_instances(start, n)
@@ -163,16 +193,20 @@ class Goal(models.Model):
 
     @classmethod
     def skipped_goals_for_today(self, user):
-        instances = [goal.scheduledinstance_set.filter(date__lte=datetime.date.today(),
-            due_date__gt=datetime.date.today(),
+        today = self.beginning_today()
+
+        instances = [goal.scheduledinstance_set.filter(date__lte=today,
+            due_date__gt=today,
             skipped=True) for
                      goal in Goal.objects.filter(user=user)]
         return list(itertools.chain.from_iterable(instances))
 
     @classmethod
     def goals_for_today_by_type(self, user, completed):
-        instances = [goal.scheduledinstance_set.filter(date__lte=datetime.date.today(),
-                                                        due_date__gt=datetime.date.today(),
+        today = self.beginning_today()
+
+        instances = [goal.scheduledinstance_set.filter(date__lte=today,
+                                                        due_date__gt=today,
                                                     completed=completed,
                                                     skipped=False) for
                      goal in Goal.objects.filter(user=user)]
@@ -187,7 +221,7 @@ class Goal(models.Model):
         return self.goals_for_today_by_type(user, False)
 
     def current_streak(self):
-        today = datetime.date.today()
+        today = self.beginning_today()
 
         previous_instances = self.past_instances()
 
@@ -198,18 +232,18 @@ class Goal(models.Model):
                 streak += 1
             elif instance.skipped:
                 continue
-            elif instance.date != today:
+            elif instance.date < today:
                 break
 
         return streak
 
     def past_instances(self):
-        today = datetime.date.today()
+        today = self.beginning_today()
 
         return self.scheduledinstance_set.filter(date__lte=today).order_by('-date')
 
     def missed_instances(self):
-        today = datetime.date.today()
+        today = self.beginning_today()
 
         return self.scheduledinstance_set.filter(due_date__lte=today).order_by('-due_date')
 
@@ -280,9 +314,9 @@ class Goal(models.Model):
 
 class ScheduledInstance(models.Model):
     goal = models.ForeignKey(Goal)
-    date = models.DateField(db_index=True)
+    date = models.DateTimeField(db_index=True)
     completed = models.BooleanField(default=False)
-    due_date = models.DateField(db_index=True, null=True, blank=True)
+    due_date = models.DateTimeField(db_index=True, null=True, blank=True)
     current_progress = models.IntegerField(default=0)
     skipped = models.BooleanField(db_index=True, default=False)
 
@@ -295,7 +329,7 @@ class ScheduledInstance(models.Model):
 
         dt = datetime.datetime(self.date.year, self.date.month, self.date.day)
 
-        return rr.after(dt).date()
+        return rr.after(dt)
 
     def progress(self):
         if self.goal.incremental:

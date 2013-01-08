@@ -149,6 +149,8 @@ def new_goal(request):
 
         g = Goal()
 
+        g.user = request.user
+
         try:
             g.parse(goal_text)
 
@@ -157,7 +159,6 @@ def new_goal(request):
 
             return HttpResponseRedirect(reverse("habits.views.main"))
 
-        g.user = request.user
         g.save()
         g.create_scheduled_instances(datetime.date.today(), 5)
 

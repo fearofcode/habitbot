@@ -15,12 +15,12 @@
                     <li><a href="/habits/">Today</a></li>
                     <li><a href="/habits/streaks/">Streaks</a></li>
                     <li><a href="/habits/goals/">Goals</a></li>
-                    <li><span class="timezone-blurb">{{readable_tz}} <a href="/habits/edit_tz/">change</a></a></li>
                 </ul>
 
                 <ul class="nav pull-right">
                     <li><a href="http://habitbot.telegr.am">Blog</a></li>
                     <li><span class="login-blurb">Hi, @{{ user.username }}!</span></li>
+                    <li><a href="/habits/edit_tz/">{{readable_tz}} <i class="icon-cog icon-white"></i></a></span></li>
                     <li><a href="/logout">Logout</a></li>
                 </ul>
             </div>
@@ -137,6 +137,8 @@
                 </ul>
 
                 <p>The command needs to be in the form <kbd><em>goal</em> every <em>interval</em></kbd> the way the above examples are.</p>
+
+                <p>Goal dates will be calculated using your local timezone, which is currently set to {{readable_tz}}. You can <a href="/habits/edit_tz/">change this</a> if you like.</p>
             {% endif %}
         {% endif %}
     {% endblock %}

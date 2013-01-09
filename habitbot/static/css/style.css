@@ -10,14 +10,6 @@ body {
     display: block;
     float: left;
     padding: 10px 20px 10px;
-    margin-left: -20px;
-    color: #e7e7e7;
-}
-
-.timezone-blurb {
-    display: block;
-    float: left;
-    padding: 10px 20px 10px;
     color: #e7e7e7;
 }
 

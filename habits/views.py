@@ -7,6 +7,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.db.models import F
 
+from django.utils import timezone
+
 from habits.models import Goal, ScheduledInstance
 import datetime
 import sys
@@ -15,7 +17,7 @@ import sys
 def standard_data(request, error_message=None):
     todo = Goal.goals_for_today(request.user)
     completed = Goal.completed_goals_for_today(request.user)
-    tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+    tomorrow = Goal.beginning_today() + datetime.timedelta(days=1)
 
     return {'skipped': Goal.skipped_goals_for_today(request.user),
             'goals': Goal.objects.filter(user=request.user).select_related('scheduledinstances'),
@@ -160,7 +162,7 @@ def new_goal(request):
             return HttpResponseRedirect(reverse("habits.views.main"))
 
         g.save()
-        g.create_scheduled_instances(datetime.date.today(), 5)
+        g.create_scheduled_instances(timezone.now(), 5)
 
         return HttpResponseRedirect(reverse("habits.views.main"))
 

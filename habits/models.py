@@ -70,8 +70,21 @@ class Goal(models.Model):
     goal_amount = models.IntegerField(default=0)
 
     @classmethod
-    def beginning_today(self):
-        return timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    def beginning_today(self, user):
+        #print "in beginning_today, user =", user
+        local_tz = pytz.timezone(user.userprofile.timezone)
+
+        print "local_tz =", local_tz
+        now_utc = timezone.now()
+        print "now_utc =", now_utc
+        now_local = now_utc.astimezone(local_tz)
+        print "now_local = ", now_local
+        local_midnight = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
+        print "local_midnight = ", local_midnight
+        local_midnight_utc = local_midnight.astimezone(pytz.utc)
+        print "local_midnight_utc = ", local_midnight_utc
+
+        return local_midnight_utc
 
     def incremental_parse(self, description):
         description_words = description.split()
@@ -93,6 +106,10 @@ class Goal(models.Model):
             raise InvalidInput("Cannot do something 0 times")
 
         return num
+
+    @classmethod
+    def user_tz(self, user):
+        return pytz.timezone(user.userprofile.timezone)
 
     def parse(self, goal_text):
         goal_text = goal_text.rstrip(string.punctuation)
@@ -145,7 +162,7 @@ class Goal(models.Model):
             
             self.dtstart = utc_dt
         else:
-            self.dtstart = Goal.beginning_today()
+            self.dtstart = Goal.beginning_today(self.user)
 
         self.rrule = recurring_event.get_RFC_rrule()
 
@@ -163,17 +180,31 @@ class Goal(models.Model):
 
         datetimes = []
 
+        print "start = ", start
+
         for i in range(0, n):
             if len(datetimes) == 0:
                 last_date = start - datetime.timedelta(days=1)
             else:
                 last_date = datetimes[-1]
 
-            last_date_naive = last_date.replace(tzinfo=None)
+            print "last_date = ", last_date
+            user_tz = pytz.timezone(self.user.userprofile.timezone)
+            last_date_local = last_date.astimezone(user_tz)
+            print "last_date_local = ", last_date_local
+            last_date_naive = last_date_local.replace(tzinfo=None)
+
+            print "last_date_naive =", last_date_naive
             next_date_naive = rr.after(last_date_naive)
-            next_date_aware = next_date_naive.replace(tzinfo=pytz.utc)
-            
-            datetimes.append(next_date_aware)
+            print "next_date_naive = ", next_date_naive
+
+            next_date_aware = next_date_naive.replace(tzinfo=user_tz)
+            next_date_utc = next_date_aware.astimezone(pytz.utc)
+
+            print "next_date_aware = ", next_date_aware
+            print "next_date_utc = ", next_date_utc
+
+            datetimes.append(next_date_utc)
 
         return [dt for dt in datetimes]
 
@@ -197,7 +228,7 @@ class Goal(models.Model):
 
     @classmethod
     def skipped_goals_for_today(self, user):
-        today = self.beginning_today()
+        today = Goal.beginning_today(self.user)
 
         instances = [goal.scheduledinstance_set.filter(date__lte=today,
             due_date__gt=today,
@@ -207,7 +238,7 @@ class Goal(models.Model):
 
     @classmethod
     def goals_for_today_by_type(self, user, completed):
-        today = self.beginning_today()
+        today = Goal.beginning_today(self.user)
 
         instances = [goal.scheduledinstance_set.filter(date__lte=today,
                                                         due_date__gt=today,
@@ -225,7 +256,7 @@ class Goal(models.Model):
         return self.goals_for_today_by_type(user, False)
 
     def current_streak(self):
-        today = self.beginning_today()
+        today = Goal.beginning_today(self.user)
 
         previous_instances = self.past_instances()
 
@@ -242,12 +273,12 @@ class Goal(models.Model):
         return streak
 
     def past_instances(self):
-        today = self.beginning_today()
+        today = Goal.beginning_today(self.user)
 
         return self.scheduledinstance_set.filter(date__lte=today).order_by('-date')
 
     def missed_instances(self):
-        today = self.beginning_today()
+        today = Goal.beginning_today(self.user)
 
         return self.scheduledinstance_set.filter(due_date__lte=today).order_by('-due_date')
 

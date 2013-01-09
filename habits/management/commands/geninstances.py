@@ -10,9 +10,11 @@ class Command(BaseCommand):
     help = 'Generates additional scheduled instances of goals'
 
     def handle(self, *args, **options):
+        from django.utils import timezone
+
         print >>sys.stderr, "Generating additional scheduled instances..."
 
-        today = Goal.beginning_today()
+        today = timezone.now()
 
         Goal.create_all_scheduled_instances(today, 5)
 

@@ -8,15 +8,26 @@ from habits.models import Goal
 class Migration(DataMigration):
 
     def forwards(self, orm):
+        from django.contrib.auth.models import User
+        from habits.models import UserProfile
+    
+        UserProfile.objects.all().delete()
+
+        for user in User.objects.all():
+            print "Creating userprofile for user", user
+            profile = UserProfile()
+            profile.user = user
+            profile.save()
+
         from django.utils import timezone
-        orm.ScheduledInstance.objects.filter(due_date__gt=timezone.now()).delete()
+        orm.ScheduledInstance.objects.filter(date__gt=timezone.now()).delete()
         
         today = timezone.now()
 
         Goal.create_all_scheduled_instances(today, 5)
 
     def backwards(self, orm):
-        raise RuntimeError("Migration cannot be reversed")
+        print "Nothing to do"
 
     models = {
         'auth.group': {

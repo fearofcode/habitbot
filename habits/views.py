@@ -9,7 +9,7 @@ from django.db.models import F
 
 from django.utils import timezone
 
-from habits.models import Goal, ScheduledInstance
+from habits.models import Goal, ScheduledInstance, UserProfile
 import datetime
 import sys
 
@@ -24,6 +24,8 @@ def standard_data(request, error_message=None):
             'todo': todo,
              'completed': completed,
              'tomorrow': tomorrow,
+             'user_tz': request.user.userprofile.timezone,
+              'readable_tz': request.user.userprofile.readable(),
              'error_message': error_message}
 
 def home(request):
@@ -85,7 +87,8 @@ def completed(request):
 def streaks(request):
     print >>sys.stderr, "in streaks"
 
-    return render_to_response("streaks.html", {'goals': Goal.objects.filter(user=request.user).select_related('scheduledinstances')},
+    return render_to_response("streaks.html", {'goals': Goal.objects.filter(user=request.user).select_related('scheduledinstances'),
+                                                'readable_tz': request.user.userprofile.readable()},
         context_instance=RequestContext(request))
 
 @login_required
@@ -120,7 +123,9 @@ def skip_instance(request, instance_id):
 
 @login_required
 def goals(request):
-    return render_to_response("goals.html", {'goals': Goal.objects.filter(user=request.user)},
+    return render_to_response("goals.html", {'goals': Goal.objects.filter(user=request.user), 
+                                            'user_tz': request.user.userprofile.timezone, 
+                                            'readable_tz': request.user.userprofile.readable()},
         context_instance=RequestContext(request))
 
 @login_required

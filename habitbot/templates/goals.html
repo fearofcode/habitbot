@@ -1,7 +1,7 @@
 {% extends "main.html" %}
+{% load tz %}
 
 {% block content %}
-    <div class="container">
 
         {% if messages %}
             <div class="error">
@@ -82,7 +82,7 @@
                                 </div>
                                 <td><span class="goaltext editable">{{ goal.description}}</span></td>
                                 <td>{{ goal.day_string }}</td>
-                                <td>{{ goal.dtstart }}</td>
+                                <td>{{ goal.dtstart|timezone:user_tz }}</td>
                                 <td><a href="#editmodal{{ forloop.counter }}" role="button" class="btn btn-mini" data-toggle="modal">Edit description</a></td>
                                 <td class="delete"><a href="#deletemodal{{ forloop.counter }}" role="button" class="btn btn-mini" data-toggle="modal">Delete</a></td></td>
                             </tr>
@@ -105,5 +105,4 @@
 
             <p>The command needs to be in the form <kbd><em>goal</em> every <em>interval</em></kbd> the way the above examples are.</p>
         {% endif %}
-    </div>
 {% endblock %}

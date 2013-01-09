@@ -14,6 +14,13 @@ body {
     color: #e7e7e7;
 }
 
+.timezone-blurb {
+    display: block;
+    float: left;
+    padding: 10px 20px 10px;
+    color: #e7e7e7;
+}
+
 .error {
     border: solid black 1px;
     background-color: #ffc;
@@ -68,4 +75,8 @@ td.delete { text-align: right }
 
 .skipped-list li .goaltext {
     color: #666
+}
+
+#settings {
+    margin-top: 32px
 }

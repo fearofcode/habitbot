@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load tz %}
 
 {% block title %}
     Habitbot: Your goals
@@ -14,6 +15,7 @@
                     <li><a href="/habits/">Today</a></li>
                     <li><a href="/habits/streaks/">Streaks</a></li>
                     <li><a href="/habits/goals/">Goals</a></li>
+                    <li><span class="timezone-blurb">{{readable_tz}} <a href="/habits/edit_tz/">change</a></a></li>
                 </ul>
 
                 <ul class="nav pull-right">
@@ -27,8 +29,6 @@
 {% endblock %}
 
 {% block content %}
-    <div class="container">
-
         {% if messages %}
             <div class="error">
                 {% for message in messages %}
@@ -106,7 +106,7 @@
 
                                 {% if instance.due_date != tomorrow %}
                                     <span class="due-date">
-                                        Due {{ instance.due_date }}
+                                        Due {{ instance.due_date|timezone:user_tz }}
                                     </span>
                                 {% endif %}
 
@@ -128,7 +128,7 @@
             {% if goals %}
                 <p>Nothing more to do today. Good job meeting your goals! Maybe celebrate a little?</p>
             {% else %}
-                <p>No goals yet. Add a new one above. Here are some examples to get you started:</p>
+               <p>No goals yet. Add a new one above. Here are some examples to get you started:</p>
 
                 <ul>
                     <li>Go for a walk every day</li>
@@ -139,5 +139,4 @@
                 <p>The command needs to be in the form <kbd><em>goal</em> every <em>interval</em></kbd> the way the above examples are.</p>
             {% endif %}
         {% endif %}
-    </div>
-{% endblock %}
+    {% endblock %}

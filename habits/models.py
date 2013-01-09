@@ -28,7 +28,7 @@ class UserProfile(models.Model):
     @classmethod
     def readable_tz(self, tzstr):
         if '/' in tzstr:
-            city = tzstr.split('/')[1]
+            city = '/'.join(tzstr.split('/')[1:])
             return city.replace('_', ' ')
         else:
             return tzstr
@@ -210,16 +210,25 @@ class Goal(models.Model):
             self.byday = params['byday']
 
     def next_date(self, last_date):
+        #print "last_date=",last_date
+        #print "rrule = ", self.rrule
         rr = rrule.rrulestr(self.rrule)
         
         user_tz = pytz.timezone(self.user.userprofile.timezone)
+        #print "user_tz=", user_tz
         last_date_local = last_date.astimezone(user_tz)
+        #print "last_date_local=", last_date_local
         last_date_naive = last_date_local.replace(tzinfo=None)
-
+        #print "last_date_naive", last_date_naive
         next_date_naive = rr.after(last_date_naive)
+        #print "next_date_naive=", next_date_naive
 
-        next_date_aware = next_date_naive.replace(tzinfo=user_tz)
+        next_date_aware = timezone.make_aware(next_date_naive, user_tz)
+        #print "next_date_aware=", next_date_aware
+
         next_date_utc = next_date_aware.astimezone(pytz.utc)
+
+        #print "next_date_utc=", next_date_utc
 
         return next_date_utc
 
@@ -238,7 +247,9 @@ class Goal(models.Model):
         return [dt for dt in datetimes]
 
     def create_scheduled_instances(self, start, n):
+        #print "in create_scheduled_instances, start = ", start
         dates = self.generate_next_scheduled_instances(start, n)
+        #print "dates = ", dates
         instances = [ScheduledInstance(goal=self, date=d) for d in dates]
 
         for instance in instances:

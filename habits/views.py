@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.db.models import F
 
 from django.utils import timezone
+import pytz
 
 from habits.models import Goal, ScheduledInstance, UserProfile
 import datetime
@@ -167,7 +168,7 @@ def new_goal(request):
             return HttpResponseRedirect(reverse("habits.views.main"))
 
         g.save()
-        g.create_scheduled_instances(timezone.now(), 5)
+        g.create_scheduled_instances(Goal.beginning_today(request.user), 5)
 
         return HttpResponseRedirect(reverse("habits.views.main"))
 
@@ -175,3 +176,45 @@ def new_goal(request):
         error_message = "Please enter a valid goal"
         return render_to_response("main.html", standard_data(request, error_message),
             context_instance=RequestContext(request))
+
+@login_required
+def edit_tz(request):
+    tz_names = UserProfile.pretty_timezone_choices
+
+    return render_to_response('edit_tz.html', {'readable_tz': request.user.userprofile.readable(),
+                                            'timezones': tz_names}, context_instance=RequestContext(request))
+
+@login_required
+def update_tz(request):
+    old_today = Goal.beginning_today(request.user)
+
+    new_timezone = request.POST['timezone']
+
+    profile = request.user.userprofile
+    profile.timezone = new_timezone
+    profile.save()
+
+    for goal in request.user.goal_set.all():
+        goal.scheduledinstance_set.filter(date__gt=timezone.now()).delete()
+
+        completed_today = goal.scheduledinstance_set.filter(completed=True, date=old_today)
+
+        print "completed_today =", completed_today
+
+        if completed_today.count() == 0:
+            goal.scheduledinstance_set.filter(date=old_today).delete()
+            goal.create_scheduled_instances(Goal.beginning_today(request.user), 5)
+        else:
+            todays_instance = completed_today[0]
+            print "before, todays_instance =", todays_instance
+            tzinfo = pytz.timezone(profile.timezone)
+            todays_instance.date = Goal.beginning_today(request.user)
+            todays_instance.due_date = todays_instance.compute_due_date()
+
+            print "after, todays_instance = ", todays_instance
+            todays_instance.save()
+
+            goal.create_scheduled_instances(old_today + datetime.timedelta(days=1), 5)
+
+    return HttpResponseRedirect(reverse("habits.views.main"))
+ 

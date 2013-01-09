@@ -10,4 +10,6 @@ urlpatterns = patterns('',
     url(r'goals/$', 'habits.views.goals'),
     url(r'new_goal/$', 'habits.views.new_goal'),
     url(r'delete_goal/(?P<goal_id>\d+)/$', 'habits.views.delete_goal'),
+    url(r'edit_tz/', 'habits.views.edit_tz'),
+    url(r'update_tz/', 'habits.views.update_tz'),
 )

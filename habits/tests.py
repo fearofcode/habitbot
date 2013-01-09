@@ -48,7 +48,7 @@ class GoalTest(TestCase):
         intl_user.save()
         profile = intl_user.userprofile
 
-        profile.timezone = 'Australia/Sydney'
+        profile.timezone = 'Europe/London'
         profile.save()
 
         intl_goal_text = "Do a thing every day"
@@ -59,7 +59,8 @@ class GoalTest(TestCase):
 
         intl_goal.create_scheduled_instances(timezone.now(), 5)
 
-        self.assertEquals(intl_goal.scheduledinstance_set.all()[0].due_date.hour, 14)
+        print "intl_goal due_date =", intl_goal.scheduledinstance_set.all()[0].due_date
+        self.assertEquals(intl_goal.scheduledinstance_set.all()[0].due_date.hour, 0)
     
     def test_parse_goal(self):
         """

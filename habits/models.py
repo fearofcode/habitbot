@@ -175,8 +175,21 @@ class Goal(models.Model):
         if params.get('byday', None):
             self.byday = params['byday']
 
-    def generate_next_scheduled_instances(self, start, n):
+    def next_date(self, last_date):
         rr = rrule.rrulestr(self.rrule)
+        
+        user_tz = pytz.timezone(self.user.userprofile.timezone)
+        last_date_local = last_date.astimezone(user_tz)
+        last_date_naive = last_date_local.replace(tzinfo=None)
+
+        next_date_naive = rr.after(last_date_naive)
+
+        next_date_aware = next_date_naive.replace(tzinfo=user_tz)
+        next_date_utc = next_date_aware.astimezone(pytz.utc)
+
+        return next_date_utc
+
+    def generate_next_scheduled_instances(self, start, n):
 
         datetimes = []
 
@@ -188,23 +201,7 @@ class Goal(models.Model):
             else:
                 last_date = datetimes[-1]
 
-            print "last_date = ", last_date
-            user_tz = pytz.timezone(self.user.userprofile.timezone)
-            last_date_local = last_date.astimezone(user_tz)
-            print "last_date_local = ", last_date_local
-            last_date_naive = last_date_local.replace(tzinfo=None)
-
-            print "last_date_naive =", last_date_naive
-            next_date_naive = rr.after(last_date_naive)
-            print "next_date_naive = ", next_date_naive
-
-            next_date_aware = next_date_naive.replace(tzinfo=user_tz)
-            next_date_utc = next_date_aware.astimezone(pytz.utc)
-
-            print "next_date_aware = ", next_date_aware
-            print "next_date_utc = ", next_date_utc
-
-            datetimes.append(next_date_utc)
+            datetimes.append(self.next_date(last_date))
 
         return [dt for dt in datetimes]
 
@@ -359,16 +356,8 @@ class ScheduledInstance(models.Model):
         ("BYMONTHDAY=" in self.goal.rrule and "FREQ=MONTHLY" in self.goal.rrule):
             return self.date + datetime.timedelta(days=1)
 
-        rr = rrule.rrulestr(self.goal.rrule)
-
-        date_naive = self.date.replace(tzinfo=None)
-
-        naive = rr.after(date_naive)
-
-        aware = naive.replace(tzinfo=pytz.utc)
-
-        return aware
-
+        return self.goal.next_date(self.date)
+    
     def progress(self):
         if self.goal.incremental:
             self.current_progress += 1

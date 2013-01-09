@@ -71,18 +71,12 @@ class Goal(models.Model):
 
     @classmethod
     def beginning_today(self, user):
-        #print "in beginning_today, user =", user
         local_tz = pytz.timezone(user.userprofile.timezone)
 
-        print "local_tz =", local_tz
         now_utc = timezone.now()
-        print "now_utc =", now_utc
         now_local = now_utc.astimezone(local_tz)
-        print "now_local = ", now_local
         local_midnight = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
-        print "local_midnight = ", local_midnight
         local_midnight_utc = local_midnight.astimezone(pytz.utc)
-        print "local_midnight_utc = ", local_midnight_utc
 
         return local_midnight_utc
 
@@ -193,8 +187,6 @@ class Goal(models.Model):
 
         datetimes = []
 
-        print "start = ", start
-
         for i in range(0, n):
             if len(datetimes) == 0:
                 last_date = start - datetime.timedelta(days=1)
@@ -235,7 +227,7 @@ class Goal(models.Model):
 
     @classmethod
     def goals_for_today_by_type(self, user, completed):
-        today = Goal.beginning_today(self.user)
+        today = Goal.beginning_today(user)
 
         instances = [goal.scheduledinstance_set.filter(date__lte=today,
                                                         due_date__gt=today,

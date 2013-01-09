@@ -25,7 +25,6 @@ class GoalTest(TestCase):
         self.byday_goal.user = self.user
         self.byday_goal.parse(byday_text)
         self.byday_goal.save()
-
         
         self.today = Goal.beginning_today(self.user)
         self.yesterday = self.today - datetime.timedelta(days=1)
@@ -49,7 +48,7 @@ class GoalTest(TestCase):
         intl_user.save()
         profile = intl_user.userprofile
 
-        profile.timezone = 'America/Los_Angeles'
+        profile.timezone = 'Australia/Sydney'
         profile.save()
 
         intl_goal_text = "Do a thing every day"
@@ -60,324 +59,319 @@ class GoalTest(TestCase):
 
         intl_goal.create_scheduled_instances(timezone.now(), 5)
 
-        print "intl_goal = ", intl_goal
+        self.assertEquals(intl_goal.scheduledinstance_set.all()[0].due_date.hour, 14)
+    
+    def test_parse_goal(self):
+        """
+        Tests that we can parse a goal from text input.
+        """
 
-        for i in intl_goal.scheduledinstance_set.all():
-            print i
+        self.assertEqual(self.simple_goal.creation_text, "Go for a walk every day")
+        self.assertEqual(self.simple_goal.description, "Go for a walk")
+        self.assertEqual(self.simple_goal.rrule,
+            'DTSTART:' + self.today.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1')
+        self.assertEqual(self.simple_goal.dtstart, self.today)
+        self.assertEqual(self.simple_goal.freq, "daily")
+        self.assertEqual(self.simple_goal.byday, None)
+    
+    def test_parsing_incremental_string(self):
+        incremental_goal = Goal()
 
-        print "done printing international info"
+        self.assertEqual(incremental_goal.incremental_parse("Go to the gym 3 times"), 3)
+        self.assertEqual(incremental_goal.incremental_parse("Go to the gym 3x"), 3)
+        self.assertEqual(incremental_goal.incremental_parse("Go to the gym three times"), 3)
 
-    #def test_parse_goal(self):
-    #    """
-    #    Tests that we can parse a goal from text input.
-    #    """
+        self.assertEqual(incremental_goal.incremental_parse("read the new york times"), None)
+        self.assertEqual(incremental_goal.incremental_parse("go for a walk"), None)
 
-    #    self.assertEqual(self.simple_goal.creation_text, "Go for a walk every day")
-    #    self.assertEqual(self.simple_goal.description, "Go for a walk")
-    #    self.assertEqual(self.simple_goal.rrule,
-    #        'DTSTART:' + self.today.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1')
-    #    self.assertEqual(self.simple_goal.dtstart, self.today)
-    #    self.assertEqual(self.simple_goal.freq, "daily")
-    #    self.assertEqual(self.simple_goal.byday, None)
-    #
-    #def test_parsing_incremental_string(self):
-    #    incremental_goal = Goal()
+        self.assertRaises(InvalidInput, incremental_goal.incremental_parse, "go to the gym 0 times")
 
-    #    self.assertEqual(incremental_goal.incremental_parse("Go to the gym 3 times"), 3)
-    #    self.assertEqual(incremental_goal.incremental_parse("Go to the gym 3x"), 3)
-    #    self.assertEqual(incremental_goal.incremental_parse("Go to the gym three times"), 3)
 
-    #    self.assertEqual(incremental_goal.incremental_parse("read the new york times"), None)
-    #    self.assertEqual(incremental_goal.incremental_parse("go for a walk"), None)
+    def test_parse_incremental_goal(self):
+        """
+        Tests parsing goals like 'go to the gym 3 times every week'.
+        """
 
-    #    self.assertRaises(InvalidInput, incremental_goal.incremental_parse, "go to the gym 0 times")
+        incremental_goal = Goal()
+        incremental_goal.user = self.user
+        incremental_goal.parse("Go to the gym 3 times every week")
+        incremental_goal.save()
 
+        self.assertEqual(incremental_goal.creation_text, "Go to the gym 3 times every week")
+        self.assertEqual(incremental_goal.description, "Go to the gym 3 times")
+        self.assertEqual(incremental_goal.rrule,
+            'DTSTART:' + self.today.strftime("%Y%m%d") + '\nRRULE:FREQ=WEEKLY;INTERVAL=1')
+        self.assertEqual(incremental_goal.dtstart, self.today)
+        self.assertEqual(incremental_goal.freq, "weekly")
+        self.assertEqual(incremental_goal.byday, None)
 
-    #def test_parse_incremental_goal(self):
-    #    """
-    #    Tests parsing goals like 'go to the gym 3 times every week'.
-    #    """
+        self.assertEqual(incremental_goal.incremental, True)
 
-    #    incremental_goal = Goal()
-    #    incremental_goal.user = self.user
-    #    incremental_goal.parse("Go to the gym 3 times every week")
-    #    incremental_goal.save()
+        self.assertEqual(incremental_goal.goal_amount, 3)
 
-    #    self.assertEqual(incremental_goal.creation_text, "Go to the gym 3 times every week")
-    #    self.assertEqual(incremental_goal.description, "Go to the gym 3 times")
-    #    self.assertEqual(incremental_goal.rrule,
-    #        'DTSTART:' + self.today.strftime("%Y%m%d") + '\nRRULE:FREQ=WEEKLY;INTERVAL=1')
-    #    self.assertEqual(incremental_goal.dtstart, self.today)
-    #    self.assertEqual(incremental_goal.freq, "weekly")
-    #    self.assertEqual(incremental_goal.byday, None)
+        incremental_goal.create_scheduled_instances(self.today, 1)
 
-    #    self.assertEqual(incremental_goal.incremental, True)
+        instance = incremental_goal.scheduledinstance_set.all()[0]
+        self.assertEqual(instance.current_progress, 0)
+        self.assertEqual(instance.completed, False)
 
-    #    self.assertEqual(incremental_goal.goal_amount, 3)
+        instance.progress()
 
-    #    incremental_goal.create_scheduled_instances(self.today, 1)
+        self.assertEqual(instance.current_progress, 1)
 
-    #    instance = incremental_goal.scheduledinstance_set.all()[0]
-    #    self.assertEqual(instance.current_progress, 0)
-    #    self.assertEqual(instance.completed, False)
+        instance.progress()
+        instance.progress()
 
-    #    instance.progress()
+        self.assertEqual(instance.current_progress, 3)
+        self.assertEqual(instance.completed, True)
 
-    #    self.assertEqual(instance.current_progress, 1)
+    def test_progress(self):
+        self.simple_goal.create_scheduled_instances(self.today, 1)
+        instance = self.simple_goal.scheduledinstance_set.all()[0]
 
-    #    instance.progress()
-    #    instance.progress()
+        self.assertEqual(instance.completed, False)
 
-    #    self.assertEqual(instance.current_progress, 3)
-    #    self.assertEqual(instance.completed, True)
+        instance.progress()
 
-    #def test_progress(self):
-    #    self.simple_goal.create_scheduled_instances(self.today, 1)
-    #    instance = self.simple_goal.scheduledinstance_set.all()[0]
+        self.assertEqual(instance.completed, True)
 
-    #    self.assertEqual(instance.completed, False)
+    def test_parse_goal_with_start_date_and_by_date(self):
+        """
+        Tests that we can parse a goal from text input with different kinds of input.
+        """
 
-    #    instance.progress()
+        self.assertEqual(self.byday_goal.creation_text, "Go to the gym every mon wed and fri starting jan 7 2013")
+        self.assertEqual(self.byday_goal.description, "Go to the gym")
+        self.assertEqual(self.byday_goal.rrule, 'DTSTART:20130107\nRRULE:BYDAY=MO,WE,FR;INTERVAL=1;FREQ=WEEKLY')
+        self.assertEqual(self.byday_goal.dtstart, datetime.datetime(2013, 1, 7, 8).replace(tzinfo=pytz.utc))
+        self.assertEqual(self.byday_goal.freq, "weekly")
+        self.assertEqual(self.byday_goal.byday, "MO,WE,FR")
 
-    #    self.assertEqual(instance.completed, True)
+    def test_complain_invalid_input(self):
+        """
+        Tests that parsing complains on invalid input.
+        """
 
-    #def test_parse_goal_with_start_date_and_by_date(self):
-    #    """
-    #    Tests that we can parse a goal from text input with different kinds of input.
-    #    """
+        goal = Goal()
+        goal.user = self.user
 
-    #    self.assertEqual(self.byday_goal.creation_text, "Go to the gym every mon wed and fri starting jan 7 2013")
-    #    self.assertEqual(self.byday_goal.description, "Go to the gym")
-    #    self.assertEqual(self.byday_goal.rrule, 'DTSTART:20130107\nRRULE:BYDAY=MO,WE,FR;INTERVAL=1;FREQ=WEEKLY')
-    #    self.assertEqual(self.byday_goal.dtstart.date(), datetime.date(2013, 1, 7))
-    #    self.assertEqual(self.byday_goal.freq, "weekly")
-    #    self.assertEqual(self.byday_goal.byday, "MO,WE,FR")
+        self.assertRaises(InvalidInput, goal.parse, "Herp a derp on Monday")
 
-    #def test_complain_invalid_input(self):
-    #    """
-    #    Tests that parsing complains on invalid input.
-    #    """
+        self.assertRaises(InvalidInput, goal.parse, "Do something every hour")
+        self.assertRaises(InvalidInput, goal.parse, "Do something every minute")
+        self.assertRaises(InvalidInput, goal.parse, "Do something every second")
 
-    #    goal = Goal()
-    #    goal.user = self.user
+        self.assertRaises(InvalidInput, goal.parse, "Go to the doctor once a decade")
 
-    #    self.assertRaises(InvalidInput, goal.parse, "Herp a derp on Monday")
+    def test_splitting_input(self):
 
-    #    self.assertRaises(InvalidInput, goal.parse, "Do something every hour")
-    #    self.assertRaises(InvalidInput, goal.parse, "Do something every minute")
-    #    self.assertRaises(InvalidInput, goal.parse, "Do something every second")
+        goal = Goal()
+        goal.user = self.user
 
-    #    self.assertRaises(InvalidInput, goal.parse, "Go to the doctor once a decade")
+        goal.parse("2 hours of studying every day")
 
-    #def test_splitting_input(self):
+        self.assertEqual(goal.creation_text, "2 hours of studying every day")
+        self.assertEqual(goal.description, "2 hours of studying")
+        self.assertEqual(goal.rrule,
+            'DTSTART:' + self.today.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1')
+        self.assertEqual(goal.dtstart.date(), datetime.date.today())
+        self.assertEqual(goal.freq, "daily")
+        self.assertEqual(goal.byday, None)
 
-    #    goal = Goal()
-    #    goal.user = self.user
+    def test_generating_scheduled_instances(self):
+        """
+        Tests generating additional times to complete a goal after it's entered.
+        """
 
-    #    goal.parse("2 hours of studying every day")
+        self.assertEqual(self.simple_goal.generate_next_scheduled_instances(self.today, 3),
+            [self.today, self.tomorrow, self.day_after_tomorrow])
 
-    #    self.assertEqual(goal.creation_text, "2 hours of studying every day")
-    #    self.assertEqual(goal.description, "2 hours of studying")
-    #    self.assertEqual(goal.rrule,
-    #        'DTSTART:' + self.today.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1')
-    #    self.assertEqual(goal.dtstart.date(), datetime.date.today())
-    #    self.assertEqual(goal.freq, "daily")
-    #    self.assertEqual(goal.byday, None)
+        self.assertEqual(self.simple_goal.generate_next_scheduled_instances(self.tomorrow, 3),
+            [self.tomorrow, self.day_after_tomorrow, self.today + datetime.timedelta(days=3)])
 
-    #def test_generating_scheduled_instances(self):
-    #    """
-    #    Tests generating additional times to complete a goal after it's entered.
-    #    """
+        self.assertEqual(self.byday_goal.generate_next_scheduled_instances(datetime.datetime(2013, 1, 9, 8).replace(tzinfo=pytz.utc), 3),
+            [datetime.datetime(2013, 1, 9, 8).replace(tzinfo=pytz.utc), datetime.datetime(2013, 1, 11, 8).replace(tzinfo=pytz.utc), datetime.datetime(2013, 1, 14, 8).replace(tzinfo=pytz.utc)])
 
-    #    self.assertEqual(self.simple_goal.generate_next_scheduled_instances(self.today, 3),
-    #        [self.today, self.tomorrow, self.day_after_tomorrow])
+    def test_generating_all_scheduled_instances(self):
+        """
+        Tests generating scheduled instances for all goals.
+        """
 
-    #    self.assertEqual(self.simple_goal.generate_next_scheduled_instances(self.tomorrow, 3),
-    #        [self.tomorrow, self.day_after_tomorrow, self.today + datetime.timedelta(days=3)])
+        self.byday_goal.delete()
 
-    #    self.assertEqual(self.byday_goal.generate_next_scheduled_instances(datetime.datetime(2013, 1, 9).replace(tzinfo=pytz.utc), 3),
-    #        [datetime.datetime(2013, 1, 9).replace(tzinfo=pytz.utc), datetime.datetime(2013, 1, 11).replace(tzinfo=pytz.utc), datetime.datetime(2013, 1, 14).replace(tzinfo=pytz.utc)])
+        self.assertEquals(Goal.objects.count(), 2)
 
-    #def test_generating_all_scheduled_instances(self):
-    #    """
-    #    Tests generating scheduled instances for all goals.
-    #    """
+        Goal.create_all_scheduled_instances(self.five_days_ago, 5)
 
-    #    self.byday_goal.delete()
+        # 5*2 = 10
+        self.assertEquals(ScheduledInstance.objects.count(), 10)
 
-    #    self.assertEquals(Goal.objects.count(), 2)
+        Goal.create_all_scheduled_instances(self.four_days_ago, 4)
 
-    #    Goal.create_all_scheduled_instances(self.five_days_ago, 5)
+        self.assertEquals(ScheduledInstance.objects.count(), 10)
 
-    #    # 5*2 = 10
-    #    self.assertEquals(ScheduledInstance.objects.count(), 10)
+        Goal.create_all_scheduled_instances(self.four_days_ago, 5)
 
-    #    Goal.create_all_scheduled_instances(self.four_days_ago, 4)
+        # one for the newer goal already exists
+        self.assertEquals(ScheduledInstance.objects.count(), 11)
 
-    #    self.assertEquals(ScheduledInstance.objects.count(), 10)
+    def test_getting_todays_goals(self):
+        self.byday_goal.delete()
 
-    #    Goal.create_all_scheduled_instances(self.four_days_ago, 5)
+        self.simple_goal.create_scheduled_instances(self.today, 5)
 
-    ##    # one for the newer goal already exists
-    #    self.assertEquals(ScheduledInstance.objects.count(), 11)
+        first_instance = self.simple_goal.scheduledinstance_set.all()[0]
 
-    #def test_getting_todays_goals(self):
-    #    self.byday_goal.delete()
+        self.assertEquals(Goal.goals_for_today(self.user), [first_instance])
 
-    #    self.simple_goal.create_scheduled_instances(self.today, 5)
+        first_instance.completed = True
+        first_instance.save()
 
-    #    first_instance = self.simple_goal.scheduledinstance_set.all()[0]
+        self.assertEquals(Goal.goals_for_today(self.user), [])
 
-    #    self.assertEquals(Goal.goals_for_today(self.user), [first_instance])
+        self.old_goal.rrule = 'DTSTART:' + self.old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=WEEKLY;INTERVAL=1'
+        self.old_goal.save()
 
-    #    first_instance.completed = True
-    #    first_instance.save()
+        self.old_goal.create_scheduled_instances(self.five_days_ago, 5)
 
-    #    self.assertEquals(Goal.goals_for_today(self.user), [])
+        instance = self.old_goal.scheduledinstance_set.all()[0]
 
-    #    self.old_goal.rrule = 'DTSTART:' + self.old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=WEEKLY;INTERVAL=1'
-    #    self.old_goal.save()
+        self.assertEquals(Goal.goals_for_today(self.user), [instance])
 
-    #    self.old_goal.create_scheduled_instances(self.five_days_ago, 5)
+    def test_streak_calculation(self):
+        self.old_goal.rrule = 'DTSTART:' + self.old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1'
+        self.old_goal.save()
 
-    #    instance = self.old_goal.scheduledinstance_set.all()[0]
+        self.byday_goal.delete()
 
-    #    self.assertEquals(Goal.goals_for_today(self.user), [instance])
+        self.assertEquals(Goal.objects.count(), 2)
 
-    #def test_streak_calculation(self):
-    #    self.old_goal.rrule = 'DTSTART:' + self.old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1'
-    #    self.old_goal.save()
+        self.old_goal.create_scheduled_instances(self.five_days_ago, 10)
 
-    #    self.byday_goal.delete()
+        self.assertEquals(self.old_goal.current_streak(), 0)
 
-    #    self.assertEquals(Goal.objects.count(), 2)
+        self.old_goal.scheduledinstance_set.filter(date__lt=self.today).update(completed=True)
 
-    #    self.old_goal.create_scheduled_instances(self.five_days_ago, 10)
+        self.assertEquals(self.old_goal.current_streak(), 5)
 
-    #    self.assertEquals(self.old_goal.current_streak(), 0)
+        yesterday_instance = self.old_goal.scheduledinstance_set.get(date=self.yesterday)
+        today_instance = self.old_goal.scheduledinstance_set.get(date=self.today)
 
-    #    self.old_goal.scheduledinstance_set.filter(date__lt=self.today).update(completed=True)
+        yesterday_instance.completed = False
+        yesterday_instance.save()
 
-    #    self.assertEquals(self.old_goal.current_streak(), 5)
+        self.assertEquals(self.old_goal.current_streak(), 0)
 
-    #    yesterday_instance = self.old_goal.scheduledinstance_set.get(date=self.yesterday)
-    #    today_instance = self.old_goal.scheduledinstance_set.get(date=self.today)
+        today_instance.completed = True
+        today_instance.save()
 
-    #    yesterday_instance.completed = False
-    #    yesterday_instance.save()
+        self.assertEquals(self.old_goal.current_streak(), 1)
 
-    #    self.assertEquals(self.old_goal.current_streak(), 0)
+    def test_streak_calculation_with_skipped_goals(self):
+        self.byday_goal.delete()
 
-    #    today_instance.completed = True
-    #    today_instance.save()
+        self.old_goal.create_scheduled_instances(self.five_days_ago, 10)
 
-    #    self.assertEquals(self.old_goal.current_streak(), 1)
+        for instance in self.old_goal.scheduledinstance_set.filter(date__lt=self.today):
+            if instance.date != self.four_days_ago:
+                instance.completed = True
+                instance.save()
+            else:
+                instance.skipped = True
+                instance.save()
 
-    #def test_streak_calculation_with_skipped_goals(self):
-    #    self.byday_goal.delete()
+        self.assertEquals(self.old_goal.current_streak(), 4)
 
-    #    self.old_goal.create_scheduled_instances(self.five_days_ago, 10)
+    def test_day_string(self):
 
-    #    for instance in self.old_goal.scheduledinstance_set.filter(date__lt=self.today):
-    #        if instance.date != self.four_days_ago:
-    #            instance.completed = True
-    #            instance.save()
-    #        else:
-    #            instance.skipped = True
-    #            instance.save()
+        self.assertEquals(self.simple_goal.day_string(), "Every day")
 
-    #    self.assertEquals(self.old_goal.current_streak(), 4)
+        weekday_goal = Goal()
+        weekday_goal.user = self.user
+        weekday_goal.parse("Pet a kitty every weekday")
 
-    #def test_day_string(self):
+        self.assertEquals(weekday_goal.day_string(), "Weekdays")
 
-    #    self.assertEquals(self.simple_goal.day_string(), "Every day")
+        self.assertEquals(self.byday_goal.day_string(), "Monday, Wednesday, Friday")
 
-    #    weekday_goal = Goal()
-    #    weekday_goal.user = self.user
-    #    weekday_goal.parse("Pet a kitty every weekday")
+        interval_goal = Goal()
+        interval_goal.user = self.user
+        interval_goal.user = self.user
+        interval_goal.parse("Pet a kitty every other day")
 
-    #    self.assertEquals(weekday_goal.day_string(), "Weekdays")
+        self.assertEquals(interval_goal.day_string(), "Every other day")
 
-    #    self.assertEquals(self.byday_goal.day_string(), "Monday, Wednesday, Friday")
+        interval_goal2 = Goal()
+        interval_goal2.user = self.user
+        interval_goal2.parse("Pet a kitty every 3 days")
 
-    #    interval_goal = Goal()
-    #    interval_goal.user = self.user
-    #    interval_goal.user = self.user
-    #    interval_goal.parse("Pet a kitty every other day")
+        self.assertEquals(interval_goal2.day_string(), "Every 3 days")
 
-    #    self.assertEquals(interval_goal.day_string(), "Every other day")
+        weekly_goal = Goal()
+        weekly_goal.user = self.user
+        weekly_goal.parse("do a thing every week")
 
-    #    interval_goal2 = Goal()
-    #    interval_goal2.user = self.user
-    #    interval_goal2.parse("Pet a kitty every 3 days")
+        self.assertEquals(weekly_goal.day_string(), "Every week")
 
-    #    self.assertEquals(interval_goal2.day_string(), "Every 3 days")
+        bymonthday_goal_text = "Pay rent every first of the month"
+        bymonth_goal = Goal()
+        bymonth_goal.user = self.user
+        bymonth_goal.parse(bymonthday_goal_text)
 
-    #    weekly_goal = Goal()
-    #    weekly_goal.user = self.user
-    #    weekly_goal.parse("do a thing every week")
+        self.assertEquals(bymonth_goal.day_string(), "Every month (day 1)")
 
-    #    self.assertEquals(weekly_goal.day_string(), "Every week")
+class ScheduledInstanceTest(TestCase):
+    def setUp(self):
+        self.user = User(username="foo", password="blah1234")
+        self.user.save()
 
-    #    bymonthday_goal_text = "Pay rent every first of the month"
-    #    bymonth_goal = Goal()
-    #    bymonth_goal.user = self.user
-    #    bymonth_goal.parse(bymonthday_goal_text)
+        simple_goal_text = "Go for a walk every day"
 
-    #    self.assertEquals(bymonth_goal.day_string(), "Every month (day 1)")
+        self.simple_goal = Goal()
+        self.simple_goal.user = self.user
+        self.simple_goal.parse(simple_goal_text)
+        self.simple_goal.save()
 
-#clas#s ScheduledInstanceTest(TestCase):
-    #def setUp(self):
-    #    self.user = User(username="foo", password="blah1234")
-    #    self.user.save()
+        self.today = Goal.beginning_today(self.user)
 
-    #    simple_goal_text = "Go for a walk every day"
+        self.i1 = ScheduledInstance(goal=self.simple_goal, date=self.today)
+        self.i1.save()
 
-    #    self.simple_goal = Goal()
-    #    self.simple_goal.user = self.user
-    #    self.simple_goal.parse(simple_goal_text)
-    #    self.simple_goal.save()
+    def test_scheduled_instance_uniqueness(self):
+        dup = ScheduledInstance(goal=self.simple_goal, date=self.today)
 
-    #    self.today = Goal.beginning_today(self.user)
+        self.assertRaises(IntegrityError, dup.save)
 
-    #    self.i1 = ScheduledInstance(goal=self.simple_goal, date=self.today)
-    #    self.i1.save()
+    def test_due_date(self):
+        self.assertEquals(self.i1.compute_due_date(), self.today + datetime.timedelta(days=1))
 
-    #def test_scheduled_instance_uniqueness(self):
-    #    dup = ScheduledInstance(goal=self.simple_goal, date=self.today)
+        weekly_goal_text = "Do a timed mile run every week"
 
-    #    self.assertRaises(IntegrityError, dup.save)
+        weekly_goal = Goal()
+        weekly_goal.user = self.user
+        weekly_goal.parse(weekly_goal_text)
+        weekly_goal.save()
 
-    #def test_due_date(self):
-    #    self.assertEquals(self.i1.compute_due_date(), self.today + datetime.timedelta(days=1))
+        instance = ScheduledInstance(goal=weekly_goal, date=self.today)
+        self.assertEquals(instance.compute_due_date(), self.today + datetime.timedelta(weeks=1))
 
-    #    weekly_goal_text = "Do a timed mile run every week"
+        byday_goal_text = "Do something every tuesday and thursday"
+        byday_goal = Goal()
+        byday_goal.user = self.user
+        byday_goal.parse(byday_goal_text)
+        byday_goal.save()
+        byday_goal.create_scheduled_instances(self.today - datetime.timedelta(weeks=1), 5)
 
-    #    weekly_goal = Goal()
-    #    weekly_goal.user = self.user
-    #    weekly_goal.parse(weekly_goal_text)
-    #    weekly_goal.save()
+        byday_instance = byday_goal.scheduledinstance_set.all()[0]
+        self.assertEquals(byday_instance.compute_due_date(), byday_instance.date + datetime.timedelta(days=1))
 
-    #    instance = ScheduledInstance(goal=weekly_goal, date=self.today)
-    #    self.assertEquals(instance.compute_due_date(), self.today + datetime.timedelta(weeks=1))
+        bymonthday_goal_text = "Pay rent every first of the month"
+        bymonth_goal = Goal()
+        bymonth_goal.user = self.user
+        bymonth_goal.parse(bymonthday_goal_text)
+        bymonth_goal.save()
 
-    #    byday_goal_text = "Do something every tuesday and thursday"
-    #    byday_goal = Goal()
-    #    byday_goal.user = self.user
-    #    byday_goal.parse(byday_goal_text)
-    #    byday_goal.save()
-    #    byday_goal.create_scheduled_instances(self.today - datetime.timedelta(weeks=1), 5)
+        bymonth_goal.create_scheduled_instances(self.today, 5)
 
-    #    byday_instance = byday_goal.scheduledinstance_set.all()[0]
-    #    self.assertEquals(byday_instance.compute_due_date(), byday_instance.date + datetime.timedelta(days=1))
-
-    #    bymonthday_goal_text = "Pay rent every first of the month"
-    #    bymonth_goal = Goal()
-    #    bymonth_goal.user = self.user
-    #    bymonth_goal.parse(bymonthday_goal_text)
-    #    bymonth_goal.save()
-
-    #    bymonth_goal.create_scheduled_instances(self.today, 5)
-
-    #    bymonth_instance = bymonth_goal.scheduledinstance_set.all()[0]
-    #    self.assertEquals(bymonth_instance.compute_due_date(), bymonth_instance.date + datetime.timedelta(days=1))
+        bymonth_instance = bymonth_goal.scheduledinstance_set.all()[0]
+        self.assertEquals(bymonth_instance.compute_due_date(), bymonth_instance.date + datetime.timedelta(days=1))

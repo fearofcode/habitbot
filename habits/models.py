@@ -217,7 +217,7 @@ class Goal(models.Model):
 
     @classmethod
     def skipped_goals_for_today(self, user):
-        today = Goal.beginning_today(self.user)
+        today = Goal.beginning_today(user)
 
         instances = [goal.scheduledinstance_set.filter(date__lte=today,
             due_date__gt=today,

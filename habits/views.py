@@ -17,7 +17,7 @@ import sys
 def standard_data(request, error_message=None):
     todo = Goal.goals_for_today(request.user)
     completed = Goal.completed_goals_for_today(request.user)
-    tomorrow = Goal.beginning_today() + datetime.timedelta(days=1)
+    tomorrow = Goal.beginning_today(request.user) + datetime.timedelta(days=1)
 
     return {'skipped': Goal.skipped_goals_for_today(request.user),
             'goals': Goal.objects.filter(user=request.user).select_related('scheduledinstances'),

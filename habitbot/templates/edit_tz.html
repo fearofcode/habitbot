@@ -1,0 +1,28 @@
+{% extends "main.html" %}
+
+{% block content %}
+
+        {% if messages %}
+            <div class="error">
+                {% for message in messages %}
+                    <p>{{ message }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+     <form method="POST" action="/habits/update_tz/" class="form-inline">
+            {% csrf_token %}
+
+            <fieldset>
+              <legend>Update your timezone</legend>
+
+              <select name="timezone">
+                {% for value, readable in timezones %}
+                <option value="{{value}}">{{readable}}</option>
+                {% endfor %}
+                </select>   
+                <button type="submit" class="btn">Update</button>
+            </fieldset>
+        </form>
+        
+{% endblock %}

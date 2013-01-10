@@ -89,6 +89,7 @@ def streaks(request):
     print >>sys.stderr, "in streaks"
 
     return render_to_response("streaks.html", {'goals': Goal.objects.filter(user=request.user).select_related('scheduledinstances'),
+                                                'user_tz': request.user.userprofile.timezone,
                                                 'readable_tz': request.user.userprofile.readable()},
         context_instance=RequestContext(request))
 

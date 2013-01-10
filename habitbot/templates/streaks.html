@@ -1,4 +1,5 @@
 {% extends "main.html" %}
+{% load tz %}
 
 {% block content %}
 
@@ -38,7 +39,7 @@
 
                                         {% for instance in goal.missed_instances %}
                                             <tr>
-                                                <td>{{ instance.date }}</td>
+                                                <td>{{ instance.date|timezone:user_tz }}</td>
                                                 <td>
                                                     <label class="checkbox">
                                                         {% if instance.completed %}

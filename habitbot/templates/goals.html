@@ -82,7 +82,7 @@
                                 </div>
                                 <td><span class="goaltext editable">{{ goal.description}}</span></td>
                                 <td>{{ goal.day_string }}</td>
-                                <td>{{ goal.dtstart|timezone:user_tz|date:'m/d/Y' }}</td>
+                                <td>{{ goal.dtstart|timezone:user_tz|date:'N j, Y' }}</td>
                                 <td><a href="#editmodal{{ forloop.counter }}" role="button" class="btn btn-mini" data-toggle="modal">Edit description</a></td>
                                 <td class="delete"><a href="#deletemodal{{ forloop.counter }}" role="button" class="btn btn-mini" data-toggle="modal">Delete</a></td></td>
                             </tr>

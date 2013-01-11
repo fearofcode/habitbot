@@ -280,7 +280,7 @@ class Goal(models.Model):
     def goals_for_today_by_type(self, user, completed):
         today = Goal.beginning_today(user)
 
-        instances = [goal.scheduledinstance_set.filter(date__lte=today,
+        instances = [goal.scheduledinstance_set.filter(date=today,
                                                         due_date__gt=today,
                                                     completed=completed,
                                                     skipped=False) for

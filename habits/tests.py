@@ -218,18 +218,22 @@ class GoalTest(TestCase):
 
     def test_getting_todays_goals(self):
         self.byday_goal.delete()
+        self.old_goal.delete()
+        #self.simple_goal.create_scheduled_instances(self.today, 5)
+        today = timezone.now()
 
-        self.simple_goal.create_scheduled_instances(self.today, 5)
+        Goal.create_all_scheduled_instances(today, 5)
 
         first_instance = self.simple_goal.scheduledinstance_set.all()[0]
 
-        self.assertEquals(Goal.goals_for_today(self.user), [first_instance])
+        self.assertEquals(Goal.goals_for_today(self.user)[0], first_instance)
 
         first_instance.completed = True
         first_instance.save()
 
         self.assertEquals(Goal.goals_for_today(self.user), [])
 
+    def test_getting_todays_old_goals(self):
         self.old_goal.rrule = 'DTSTART:' + self.old_goal.dtstart.strftime("%Y%m%d") + '\nRRULE:FREQ=WEEKLY;INTERVAL=1'
         self.old_goal.save()
 

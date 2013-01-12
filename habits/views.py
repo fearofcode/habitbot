@@ -198,24 +198,16 @@ def update_tz(request):
     for goal in request.user.goal_set.all():
         goal.scheduledinstance_set.filter(date__gt=timezone.now()).delete()
 
-        completed_today = goal.scheduledinstance_set.filter(completed=True, date=old_today)
+        completed_today = goal.scheduledinstance_set.filter(completed=True, date=old_today).exists()
 
-        print "completed_today =", completed_today
+        goal.scheduledinstance_set.filter(date=old_today).delete()
+        new_today = Goal.beginning_today(request.user)
+        goal.create_scheduled_instances(new_today, 5)
 
-        if completed_today.count() == 0:
-            goal.scheduledinstance_set.filter(date=old_today).delete()
-            goal.create_scheduled_instances(Goal.beginning_today(request.user), 5)
-        else:
-            todays_instance = completed_today[0]
-            print "before, todays_instance =", todays_instance
-            tzinfo = pytz.timezone(profile.timezone)
-            todays_instance.date = Goal.beginning_today(request.user)
-            todays_instance.due_date = todays_instance.compute_due_date()
-
-            print "after, todays_instance = ", todays_instance
+        if completed_today:
+            todays_instance = ScheduledInstance.objects.get(date=new_today)
+            todays_instance.completed = True
             todays_instance.save()
-
-            goal.create_scheduled_instances(old_today + datetime.timedelta(days=1), 5)
 
     return HttpResponseRedirect(reverse("habits.views.main"))
  

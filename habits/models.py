@@ -277,15 +277,24 @@ class Goal(models.Model):
         return list(itertools.chain.from_iterable(instances))
 
     @classmethod
+    def get_first(self, lst):
+        r = list(lst[:1])
+        
+        if r:
+            return r[0]
+        
+        return None
+
+    @classmethod
     def goals_for_today_by_type(self, user, completed):
         today = Goal.beginning_today(user)
 
-        instances = [goal.scheduledinstance_set.filter(date__lte=today,
+        instances = [Goal.get_first(goal.scheduledinstance_set.filter(date__lte=today,
                                                         due_date__gt=today,
                                                     completed=completed,
-                                                    skipped=False) for
+                                                    skipped=False).order_by('-due_date')) for
                      goal in Goal.objects.filter(user=user)]
-        return list(itertools.chain.from_iterable(instances))
+        return [i for i in instances if i is not None]
 
     @classmethod
     def completed_goals_for_today(self, user):

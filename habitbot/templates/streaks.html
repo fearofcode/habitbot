@@ -3,14 +3,7 @@
 
 {% block content %}
 
-        {% if messages %}
-            <div class="error">
-                {% for message in messages %}
-                    <p>{{ message }}</span>
-                {% endfor %}
-            </div>
-        {% endif %}
-
+        <section id="no-more-tables">
         <h2>Edit streaks</h2>
 
         <p>Below are goal instances whose due date has already passed.</p>
@@ -39,8 +32,8 @@
 
                                         {% for instance in goal.missed_instances %}
                                             <tr>
-                                                <td>{{ instance.date|timezone:user_tz|date:'N j, Y' }}</td>
-                                                <td>
+                                                <td data-title="Date">{{ instance.date|timezone:user_tz|date:'N j, Y' }}</td>
+                                                <td data-title="Completed">
                                                     <label class="checkbox">
                                                         {% if instance.completed %}
                                                             <input type="checkbox" name="complete[]" value="{{ instance.id }}" checked disabled>
@@ -50,7 +43,7 @@
                                                     </label>
                                                 </td>
 
-                                                <td>
+                                                <td data-title="Skipped">
                                                     <label class="checkbox">
                                                         {% if instance.skipped %}
                                                             <input type="checkbox" name="skip[]" value="{{ instance.id }}" checked disabled>
@@ -78,7 +71,7 @@
             </div>
 
 
-
+        </section>
         {% else %}
             <p>No goals yet. <a href="/habits/">Add a new one now</a>.</p>
         {% endif %}

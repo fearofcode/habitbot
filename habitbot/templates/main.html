@@ -14,14 +14,14 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="#">Habitbot</a>
+          <a class="brand" href="/">Habitbot</a>
           <div class="nav-collapse collapse">
             <ul class="nav">
                 <li><a id="username" href="#">Hi, @{{user.username}}!</a></li>
                 <li><a href="/habits/" title="See what you've accomplished today and what remains to be done">Today</a></li>
                 <li><a href="/habits/streaks/" title="Edit past completion of goals">Streaks</a></li>
                 <li><a href="/habits/goals/" title="Manage the goals you are currently tracking">Goals</a></li>
-                <li><a href="/habits/edit_tz/" title="Change your current timezone">{{readable_tz}} <i class="icon-cog icon-white"></i></a></span></li>
+                <li><a href="/habits/edit_tz/" title="Change your current timezone"><i class="icon-time icon-white"></i> {{readable_tz}}</a></span></li>
                 <li><a href="http://habitbot.telegr.am">Blog</a></li>
             </ul>
 
@@ -35,15 +35,19 @@
     </div>
 {% endblock %}
 
-{% block content %}
-        {% if messages %}
-            <div class="error">
+{% block messages %}
+    {% if messages %}
+        <div class="alert alert-error">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
                 {% for message in messages %}
-                    <p>{{ message }}</span>
+                    {{ message }}
                 {% endfor %}
             </div>
         {% endif %}
+{% endblock %}
 
+{% block content %}
+        
         <form method="POST" action="/habits/new_goal/" class="form-inline" id="new-goal">
             {% csrf_token %}
 
@@ -64,8 +68,9 @@
                     <ul class="skipped-list">
                         {% for instance in skipped %}
                             <li><i class="icon-pause"></i>
-                                <span class="goaltext">{{ instance.goal.description }}</span>
-                                <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span></li>
+                            <span class="streak">{{ instance.goal.current_streak }}</span>
+                            <span class="goaltext">{{ instance.goal.description }}</span>
+                                </li>
                             </li>
                         {% endfor %}
                     </ul>
@@ -80,13 +85,13 @@
                     <ul class="completed-list">
                         {% for instance in completed %}
                             <li><i class="icon-ok"></i>
+                                 <span class="streak">{{ instance.goal.current_streak }}</span>
                                 <span class="goaltext">{{ instance.goal.description }}</span>
                                 {% if instance.goal.incremental %}
                                     <span class="progress">
                                         {{ instance.current_progress }} / {{ instance.goal.goal_amount }}
                                     </span>
                                 {% endif %}
-                                <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span></li>
                         {% endfor %}
                     </ul>
                 </div>
@@ -103,7 +108,8 @@
                         {% for instance in todo %}
                             <label class="checkbox">
                                 <input type="checkbox" name="instance[]" value="{{ instance.id }}">
-                                <span class="goaltext">{{ instance.goal.description }}</span>
+                                 <span class="streak">{{ instance.goal.current_streak }}</span>
+                            <span class="goaltext">{{ instance.goal.description }}</span>
 
                                 {% if instance.goal.incremental %}
                                     <span class="progress">
@@ -113,7 +119,7 @@
 
                                 {% if instance.due_date != tomorrow %}
                                     <span class="due-date">
-                                        Due {{ instance.due_date|timezone:user_tz }}
+                                        Due {{ instance.due_date|timezone:user_tz|date:'N j, Y' }}
                                     </span>
                                 {% endif %}
 
@@ -123,7 +129,6 @@
                                     </a>
                                 </div>
 
-                                <span class="streak pull-right">current streak: {{ instance.goal.current_streak }}</span>
                             </label>
                         {% endfor %}
 

@@ -3,14 +3,6 @@
 
 {% block content %}
 
-        {% if messages %}
-            <div class="error">
-                {% for message in messages %}
-                    <p>{{ message }}</span>
-                {% endfor %}
-            </div>
-        {% endif %}
-
         <form method="POST" action="/habits/new_goal/" class="form-inline" id="new-goal">
             {% csrf_token %}
 
@@ -21,6 +13,7 @@
             </fieldset>
         </form>
 
+        <section id="no-more-tables">
         <h2>Current goals</h2>
 
         {% if goals %}
@@ -80,18 +73,18 @@
                                         </fieldset>
                                     </form>
                                 </div>
-                                <td><span class="goaltext editable">{{ goal.description}}</span></td>
-                                <td>{{ goal.day_string }}</td>
-                                <td>{{ goal.dtstart|timezone:user_tz|date:'N j, Y' }}</td>
-                                <td><a href="#editmodal{{ forloop.counter }}" role="button" class="btn btn-mini" data-toggle="modal">Edit description</a></td>
-                                <td class="delete"><a href="#deletemodal{{ forloop.counter }}" role="button" class="btn btn-mini" data-toggle="modal">Delete</a></td></td>
+                                <td data-title="Description"><span class="goaltext editable">{{ goal.description}}</span></td>
+                                <td data-title="Frequency">{{ goal.day_string }}</td>
+                                <td data-title="Started">{{ goal.dtstart|timezone:user_tz|date:'N j, Y' }}</td>
+                                <td data-title="Edit"><a href="#editmodal{{ forloop.counter }}" role="button" class="btn btn-mini" data-toggle="modal">Edit description</a></td>
+                                <td data-title="Delete" class="delete"><a href="#deletemodal{{ forloop.counter }}" role="button" class="btn btn-mini" data-toggle="modal">Delete</a></td></td>
                             </tr>
                         {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
-
+        </section>
 
 
         {% else %}

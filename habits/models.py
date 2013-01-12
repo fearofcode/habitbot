@@ -258,8 +258,8 @@ class Goal(models.Model):
                 instance.save()
             except IntegrityError:
                 pass
-            else:
-                print >>sys.stderr, "Created scheduled instance: " + str(instance)
+            #else:
+            #    print >>sys.stderr, "Created scheduled instance: " + str(instance)
 
     @classmethod
     def create_all_scheduled_instances(self, start, n):
@@ -280,7 +280,7 @@ class Goal(models.Model):
     def goals_for_today_by_type(self, user, completed):
         today = Goal.beginning_today(user)
 
-        instances = [goal.scheduledinstance_set.filter(date=today,
+        instances = [goal.scheduledinstance_set.filter(date__lte=today,
                                                         due_date__gt=today,
                                                     completed=completed,
                                                     skipped=False) for

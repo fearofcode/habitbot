@@ -175,7 +175,7 @@ class GoalTest(TestCase):
         self.assertEqual(goal.description, "2 hours of studying")
         self.assertEqual(goal.rrule,
             'DTSTART:' + self.today.strftime("%Y%m%d") + '\nRRULE:FREQ=DAILY;INTERVAL=1')
-        self.assertEqual(goal.dtstart.date(), datetime.date.today())
+        self.assertEqual(goal.dtstart, Goal.beginning_today(self.user))
         self.assertEqual(goal.freq, "daily")
         self.assertEqual(goal.byday, None)
 
@@ -235,7 +235,12 @@ class GoalTest(TestCase):
 
         self.old_goal.create_scheduled_instances(self.five_days_ago, 5)
 
+        print "*** today = ", Goal.beginning_today(self.user)
+
+
         instance = self.old_goal.scheduledinstance_set.all()[0]
+
+        print "*** expected instance = ", instance
 
         self.assertEquals(Goal.goals_for_today(self.user), [instance])
 

@@ -6,25 +6,32 @@
 {% endblock %}
 
 {% block nav %}
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="navbar-inner">
-            <div class="container">
-                <a class="brand" href="/">Habitbot</a>
+     <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Habitbot</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+                <li><a id="username" href="#">Hi, @{{user.username}}!</a></li>
+                <li><a href="/habits/" title="See what you've accomplished today and what remains to be done">Today</a></li>
+                <li><a href="/habits/streaks/" title="Edit past completion of goals">Streaks</a></li>
+                <li><a href="/habits/goals/" title="Manage the goals you are currently tracking">Goals</a></li>
+                <li><a href="/habits/edit_tz/" title="Change your current timezone">{{readable_tz}} <i class="icon-cog icon-white"></i></a></span></li>
+                <li><a href="http://habitbot.telegr.am">Blog</a></li>
+            </ul>
 
-                <ul class="nav">
-                    <li><a href="/habits/" title="See what you've accomplished today and what remains to be done">Today</a></li>
-                    <li><a href="/habits/streaks/" title="Edit past completion of goals">Streaks</a></li>
-                    <li><a href="/habits/goals/" title="Manage the goals you are currently tracking">Goals</a></li>
-                </ul>
+            <form action="/logout" method="get" class="navbar-form pull-right">
+              <button type="submit" class="btn">Logout</button>
+            </form>
 
-                <ul class="nav pull-right">
-                    <li><a href="http://habitbot.telegr.am" title="News and updates on the Habitbot web application">Blog</a></li>
-                    <li><span class="login-blurb">Hi, @{{ user.username }}!</span></li>
-                    <li><a href="/habits/edit_tz/" title="Change your current timezone">{{readable_tz}} <i class="icon-cog icon-white"></i></a></span></li>
-                    <li><a href="/logout" title="Sign out of Habitbot">Logout</a></li>
-                </ul>
-            </div>
+          </div><!--/.nav-collapse -->
         </div>
+      </div>
     </div>
 {% endblock %}
 

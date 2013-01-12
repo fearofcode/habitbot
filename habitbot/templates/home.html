@@ -9,20 +9,26 @@
 
 {% block nav %}
     <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="navbar-inner">
-            <div class="container">
-                <a class="brand" href="/">Habitbot</a>
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Habitbot</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li><a href="http://habitbot.telegr.am">Blog</a></li>
+            </ul>
 
-                <ul class="nav">
-                    <li><a href="http://habitbot.tumblr.com">Blog</a></li>
-                </ul>
+            <form action="{% url socialauth_begin "twitter" %}" method="get" class="navbar-form pull-right">
+              <button type="submit" class="btn btn-success">Sign in</button>
+            </form>
 
-                <div class="pull-right">
-                    <a href="{% url socialauth_begin "twitter" %}"
-                       class="btn btn-success" href="#">Sign in</a>
-                </div>
-            </div>
+          </div><!--/.nav-collapse -->
         </div>
+      </div>
     </div>
 {% endblock %}
 

@@ -6,13 +6,7 @@ body {
 .hero-unit { padding-top: 10px }
 #screenshot { text-align: center }
 
-.login-blurb {
-    display: block;
-    float: left;
-    padding: 10px 20px 10px;
-    color: #e7e7e7;
-}
-
+#username { color: white }
 .error {
     border: solid black 1px;
     background-color: #ffc;

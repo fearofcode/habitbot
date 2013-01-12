@@ -198,16 +198,9 @@ def update_tz(request):
     for goal in request.user.goal_set.all():
         goal.scheduledinstance_set.filter(date__gt=timezone.now()).delete()
 
-        completed_today = goal.scheduledinstance_set.filter(completed=True, date=old_today).exists()
-
         goal.scheduledinstance_set.filter(date=old_today).delete()
         new_today = Goal.beginning_today(request.user)
         goal.create_scheduled_instances(new_today, 5)
-
-        if completed_today:
-            todays_instance = ScheduledInstance.objects.get(date=new_today)
-            todays_instance.completed = True
-            todays_instance.save()
 
     return HttpResponseRedirect(reverse("habits.views.main"))
  

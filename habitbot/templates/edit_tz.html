@@ -1,15 +1,6 @@
 {% extends "main.html" %}
 
 {% block content %}
-
-        {% if messages %}
-            <div class="error">
-                {% for message in messages %}
-                    <p>{{ message }}</span>
-                {% endfor %}
-            </div>
-        {% endif %}
-
      <form method="POST" action="/habits/update_tz/" class="form-inline">
             {% csrf_token %}
 

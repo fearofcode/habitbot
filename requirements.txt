@@ -1,0 +1,7 @@
+django
+south
+django-social-auth
+pytz
+python-dateutil
+git+git://github.com/kvh/recurrent.git@bdccfd9e52414fa8cbeb2934f6d6e640f8a8e745
+selenium

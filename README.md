@@ -51,8 +51,9 @@ We now need to configure the settings of the Django project.
 
 You should now be able to run the following from the project root
 
-    $ python manage.py syncdb
+    $ python manage.py syncdb # say no to creating the superuser
     $ python manage.py migrate
+    $ python manage.py createsuperuser
     $ python manage.py runserver
 
 And we're done!

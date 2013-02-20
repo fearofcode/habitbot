@@ -14,6 +14,8 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.db.models.signals import post_save
 
+from habits.ordereddict import OrderedDict
+
 class InvalidInput(Exception):
     def __init__(self, value):
         self.value = value
@@ -323,13 +325,21 @@ class Goal(models.Model):
     @classmethod
     def past_instances_by_day(self, user):
         user_goals = Goal.objects.filter(user=user).select_related('scheduledinstances')
+        missed_instances = [goal.missed_instances() for goal in user_goals] 
+        flattened = list(itertools.chain.from_iterable(missed_instances))
 
-        all_missed_instances = itertools.chain.from_iterable([goal.missed_instances() for goal in user_goals])
+        by_date = {}
 
-        grouped = itertools.groupby(all_missed_instances, key=lambda i: i.due_date)
-        grouped_list = [(d, list(g)) for d, g in grouped]
+        for i in flattened:
+            if not by_date.get(i.due_date, None):
+                by_date[i.due_date] = []
 
-        return grouped_list
+            by_date[i.due_date].append(i)
+
+        od = list(OrderedDict(sorted(by_date.items())).iteritems())
+
+        od.reverse()
+        return od
     def day_string(self):
         unit_types = {"daily": "day",
                       "weekly": "week",

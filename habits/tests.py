@@ -239,12 +239,8 @@ class GoalTest(TestCase):
 
         self.old_goal.create_scheduled_instances(self.five_days_ago, 5)
 
-        print "*** today = ", Goal.beginning_today(self.user)
-
 
         instance = self.old_goal.scheduledinstance_set.all()[0]
-
-        print "*** expected instance = ", instance
 
         self.assertEquals(Goal.goals_for_today(self.user), [instance])
 
@@ -385,3 +381,4 @@ class ScheduledInstanceTest(TestCase):
 
         bymonth_instance = bymonth_goal.scheduledinstance_set.all()[0]
         self.assertEquals(bymonth_instance.compute_due_date(), bymonth_instance.date + datetime.timedelta(days=1))
+

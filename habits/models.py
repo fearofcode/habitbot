@@ -210,25 +210,17 @@ class Goal(models.Model):
             self.byday = params['byday']
 
     def next_date(self, last_date):
-        #print "last_date=",last_date
-        #print "rrule = ", self.rrule
         rr = rrule.rrulestr(self.rrule)
         
         user_tz = pytz.timezone(self.user.userprofile.timezone)
-        #print "user_tz=", user_tz
         last_date_local = last_date.astimezone(user_tz)
-        #print "last_date_local=", last_date_local
         last_date_naive = last_date_local.replace(tzinfo=None)
-        #print "last_date_naive", last_date_naive
         next_date_naive = rr.after(last_date_naive)
-        #print "next_date_naive=", next_date_naive
 
         next_date_aware = timezone.make_aware(next_date_naive, user_tz)
-        #print "next_date_aware=", next_date_aware
 
         next_date_utc = next_date_aware.astimezone(pytz.utc)
 
-        #print "next_date_utc=", next_date_utc
 
         return next_date_utc
 
@@ -247,9 +239,7 @@ class Goal(models.Model):
         return [dt for dt in datetimes]
 
     def create_scheduled_instances(self, start, n):
-        #print "in create_scheduled_instances, start = ", start
         dates = self.generate_next_scheduled_instances(start, n)
-        #print "dates = ", dates
         instances = [ScheduledInstance(goal=self, date=d) for d in dates]
 
         for instance in instances:
@@ -258,8 +248,6 @@ class Goal(models.Model):
                 instance.save()
             except IntegrityError:
                 pass
-            #else:
-            #    print >>sys.stderr, "Created scheduled instance: " + str(instance)
 
     @classmethod
     def create_all_scheduled_instances(self, start, n):
@@ -329,9 +317,19 @@ class Goal(models.Model):
     def missed_instances(self):
         today = Goal.beginning_today(self.user)
 
-        return self.scheduledinstance_set.filter(due_date__lte=today).order_by('-due_date')
+        # last 7 instances of the goal
+        return self.scheduledinstance_set.filter(due_date__lte=today).order_by('-due_date')[:7]
 
+    @classmethod
+    def past_instances_by_day(self, user):
+        user_goals = Goal.objects.filter(user=user).select_related('scheduledinstances')
 
+        all_missed_instances = itertools.chain.from_iterable([goal.missed_instances() for goal in user_goals])
+
+        grouped = itertools.groupby(all_missed_instances, key=lambda i: i.due_date)
+        grouped_list = [(d, list(g)) for d, g in grouped]
+
+        return grouped_list
     def day_string(self):
         unit_types = {"daily": "day",
                       "weekly": "week",

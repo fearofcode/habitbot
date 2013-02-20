@@ -32,5 +32,10 @@ $(document).ready(function() {
             $(this).children(".skip").hide();
         }
     );
+
+    $('#streak-tab a').click(function (e) {
+      e.preventDefault();
+      $(this).tab('show');
+    })
 });
 

@@ -2,72 +2,135 @@
 {% load tz %}
 
 {% block content %}
+  <section id="no-more-tables">
+    <h2>Edit streaks</h2>
 
-        <section id="no-more-tables">
-        <h2>Edit streaks</h2>
+    <p>Below are goal instances whose due date has already passed.</p>
 
-        <p>Below are goal instances whose due date has already passed.</p>
+    {% if goals %}
+      <div class="row">
+        <div class="span12">
+          <ul id="streak-tab" class="nav nav-tabs">
+            <li class="active"><a href="#bygoal" data-toggle="tab">By goal</a></li>
+            <li class=""><a href="#byday" data-toggle="tab">By day</a></li>
+          </ul>
 
-        {% if goals %}
-            <div class="row">
-                <div class="span12">
-                    {% for goal in goals %}
-                        <h3>{{ goal.description }}</h3>
-
-
-                            {% if goal.missed_instances %}
-                                <form method="POST" action="/habits/edit_streaks/">
-                                    {% csrf_token %}
-
-                                    <table class="table table-hover">
-                                        <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Completed</th>
-                                            <th>Skipped</th>
-                                        </tr>
-                                        </thead>
-
-                                        <tbody>
-
-                                        {% for instance in goal.missed_instances %}
-                                            <tr>
-                                                <td data-title="Date">{{ instance.date|timezone:user_tz|date:'N j, Y' }}</td>
-                                                <td data-title="Completed">
-                                                    <label class="checkbox">
-                                                        {% if instance.completed %}
-                                                            <input type="checkbox" name="complete[]" value="{{ instance.id }}" checked disabled>
-                                                        {% else %}
-                                                            <input type="checkbox" name="complete[]" value="{{ instance.id }}">
-                                                        {% endif %}
-                                                    </label>
-                                                </td>
-
-                                                <td data-title="Skipped">
-                                                    <label class="checkbox">
-                                                        {% if instance.skipped %}
-                                                            <input type="checkbox" name="skip[]" value="{{ instance.id }}" checked disabled>
-                                                        {% else %}
-                                                            <input type="checkbox" name="skip[]" value="{{ instance.id }}">
-                                                        {% endif %}
-                                                    </label>
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
+          <div id="streak-content" class="tab-content">
+            <div class="tab-pane fade active in" id="bygoal">
+              {% for goal in goals %}
+                <h3>{{ goal.description }}</h3>
 
 
-                                        </tbody>
-                                    </table>
+                {% if goal.missed_instances %}
+                 <form method="POST" action="/habits/edit_streaks/">
+                   {% csrf_token %}
 
-                                    <button type="submit" class="btn">Update</button>
+                   <table class="table table-hover">
+                      <thead>
+                        <tr>
+                           <th>Date</th>
+                           <th>Completed</th>
+                           <th>Skipped</th>
+                        </tr>
+                      </thead>
 
-                                </form>
+                      <tbody>
 
+                      {% for instance in goal.missed_instances %}
+                        <tr>
+                          <td data-title="Date">{{ instance.date|timezone:user_tz|date:'N j, Y' }}</td>
+                          <td data-title="Completed">
+                            <label class="checkbox">
+                              {% if instance.completed %}
+                                <input type="checkbox" name="complete[]" value="{{ instance.id }}" checked disabled>
+                              {% else %}
+                                <input type="checkbox" name="complete[]" value="{{ instance.id }}">
+                              {% endif %}
+                            </label>
+                          </td>
+
+                          <td data-title="Skipped">
+                            <label class="checkbox">
+                              {% if instance.skipped %}
+                                <input type="checkbox" name="skip[]" value="{{ instance.id }}" checked disabled>
+                              {% else %}
+                                <input type="checkbox" name="skip[]" value="{{ instance.id }}">
+                              {% endif %}
+                            </label>
+                          </td>
+                        </tr>
+                      {% endfor %}
+
+
+                      </tbody>
+                    </table>
+
+                  <button type="submit" class="btn">Update</button>
+
+                </form>
+
+                {% else %}
+                  <p>No past instances of this goal yet.</p>
+                {% endif %}
+              {% endfor %}
+            </div>
+            
+            <div class="tab-pane fade" id="byday">
+              {% for date, instance_group in byday %}
+                {% if instance_group %}
+                  <h3>{{ date|timezone:user_tz|date:'N j, Y' }}</h3>
+                  
+                  <form method="POST" action="/habits/edit_streaks/">
+                    {% csrf_token %}
+
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>Goal</th>
+                          <th>Completed</th>
+                          <th>Skipped</th>
+                        </tr>
+                      </thead>
+
+                    <tbody>
+
+                    {% for instance in instance_group %}
+                      <tr>
+                        <td data-title="Goal">{{ instance.goal.description }}</td>
+                        <td data-title="Completed">
+                          <label class="checkbox">
+                            {% if instance.completed %}
+                              <input type="checkbox" name="complete[]" value="{{ instance.id }}" checked disabled>
                             {% else %}
-                                <p>No past instances of this goal yet.</p>
+                              <input type="checkbox" name="complete[]" value="{{ instance.id }}">
                             {% endif %}
+                          </label>
+                        </td>
+
+                        <td data-title="Skipped">
+                          <label class="checkbox">
+                            {% if instance.skipped %}
+                              <input type="checkbox" name="skip[]" value="{{ instance.id }}" checked disabled>
+                            {% else %}
+                              <input type="checkbox" name="skip[]" value="{{ instance.id }}">
+                            {% endif %}
+                          </label>
+                        </td>
+                      </tr>
                     {% endfor %}
-                </div>
+
+
+                    </tbody>
+                    </table>
+
+                  <button type="submit" class="btn">Update</button>
+                </form>
+           {% endif %}
+         {% endfor %}
+     </div>
+</div>
+</div>
+                 </div>
             </div>
 
 
